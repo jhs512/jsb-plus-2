@@ -4,6 +4,10 @@ spring:
   output:
     ansi:
       enabled: always
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true # POST + _method=PUT/DELETE 파라미터를 PUT/DELETE 요청으로 바꿔 준다. (14168 41강)
   profiles:
     active: dev # 기본은 개발(dev) 프로파일, 테스트는 @ActiveProfiles("test")로 전환
   jpa:

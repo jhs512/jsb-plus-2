@@ -25,10 +25,8 @@
                     <span class="nav-link" sec:authentication="name">user1</span>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <!-- 로그아웃은 POST 요청이어야 하므로 링크가 아닌 폼 버튼 -->
-                    <form th:action="@{/user/logout}" method="post">
-                        <button type="submit" class="nav-link">로그아웃</button>
-                    </form>
+                    <!-- 로그아웃은 POST 요청이어야 한다. global.js가 a[method]를 폼 전송으로 바꿔 준다. -->
+                    <a class="nav-link" method="POST" th:href="@{/user/logout}">로그아웃</a>
                 </li>
             </ul>
         </div>

@@ -1807,3 +1807,47 @@ public UserDetails loadUserByUsername(String username) {
 **결과**
 ![목록 글쓴이](docs/steps/024-02-1.jpg)
 ![상세 글쓴이](docs/steps/024-02-2.jpg)
+
+### 025-01 수정과 삭제, _method 필터와 global.js
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/025-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/025-01)
+
+**무엇을** `_method` 파라미터를 PUT/DELETE로 바꿔 주는 필터를 켜고, `<a method="POST|PUT|DELETE">` 링크를 숨은 폼 전송으로 바꿔 주는 공통 스크립트(`global.js`)를 만들었습니다. 첫 사용처로 로그아웃을 링크로 바꿨습니다.
+
+**왜** 교재는 삭제와 추천을 **GET 링크**로 처리합니다. GET은 조회용이라서, 링크 미리보기나 다른 사이트의 `<img src="…/delete/5">` 같은 요청만으로 데이터가 바뀔 수 있습니다. 그래서 상태를 바꾸는 요청은 PUT, DELETE, POST로 보냅니다. 그런데 HTML 폼과 링크는 GET과 POST만 보낼 수 있어서, POST에 `_method`를 실어 보내는 방식을 씁니다(14168 41~44강).
+
+`application.yaml`
+```diff
++ mvc:
++   hiddenmethod:
++     filter:
++       enabled: true   # POST + _method=PUT/DELETE → PUT/DELETE 요청으로 바꿔 준다
+```
+
+`global.js` (새 파일, 핵심)
+```js
+document.querySelectorAll("a[method]").forEach((anchor) => {
+    anchor.addEventListener("click", (e) => {
+        e.preventDefault();                          // 기본 링크 이동(GET) 막기
+        // onclick(confirm)이 있으면 먼저 실행, 취소하면 중단
+        const form = document.createElement("form");
+        form.action = new URL(anchor.href).pathname;
+        form.method = "POST";
+        addHidden("_csrf", document.querySelector('meta[name="_csrf"]').content);
+        if (method !== "POST") addHidden("_method", method);   // PUT, DELETE
+        document.body.appendChild(form);
+        form.submit();
+    });
+});
+```
+
+`navbar.html`
+```diff
+- <form th:action="@{/user/logout}" method="post">
+-     <button type="submit" class="nav-link">로그아웃</button>
+- </form>
++ <a class="nav-link" method="POST" th:href="@{/user/logout}">로그아웃</a>
+```
+
+**결과** 로그아웃은 링크인데도 네트워크 탭에는 `POST /user/logout`(폼 데이터 `_csrf`)으로 나갑니다.
+![로그아웃 링크](docs/steps/025-01-1.jpg)
+![POST로 전송](docs/steps/025-01-2.jpg)
