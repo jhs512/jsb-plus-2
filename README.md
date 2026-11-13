@@ -944,3 +944,28 @@ public class DataNotFoundException extends RuntimeException {
 
 **결과** 아직 `/answer/create/2`를 처리하는 컨트롤러가 없어서, 지금 전송하면 404입니다. 다음 커밋에서 만듭니다.
 ![답변 폼](docs/steps/012-01-1.jpg)
+
+### 012-02 답변 기능, 답변 저장과 리다이렉트
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/012-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/012-02)
+
+**무엇을** `POST /answer/create/{id}`를 처리하는 `AnswerController`를 만들었습니다. 답변은 `question.addAnswer()`로 추가하고, 저장 후에는 상세 페이지로 **리다이렉트**합니다.
+
+**왜** 교재는 `answerRepository.save()`를 쓰지만, 강사처럼 질문의 답변 목록에 추가하는 방식으로 만듭니다(14163 37강). 처리 후 화면을 직접 그리지 않고 리다이렉트하면, 사용자가 새로고침해도 답변이 **중복 등록되지 않습니다**(POST-Redirect-GET, 14168 28강).
+
+`AnswerController.java` (새 파일, 핵심)
+```java
+@PostMapping("/create/{id}")
+@Transactional   // 조회 + 답변 추가를 하나의 트랜잭션으로 → 메서드가 끝날 때 INSERT
+public String createAnswer(@PathVariable int id, @RequestParam("content") String content) {
+    Question question = questionService.getQuestion(id);
+    answerService.create(question, content);   // = question.addAnswer(content)
+
+    return "redirect:/question/detail/%d".formatted(id);
+}
+```
+
+**결과** 네트워크 탭을 보면 POST가 302를 받고, 브라우저가 상세 페이지를 GET으로 다시 요청했습니다. DB에는 답변이 들어갔습니다. 화면에 답변 목록은 다음 커밋에서 보여 줍니다.
+![POST-Redirect-GET](docs/steps/012-02-1.jpg)
+![ANSWER 테이블](docs/steps/012-02-2.jpg)
+
+> **확인해 볼 것** 리다이렉트 없이 `return "question_detail";`로 화면을 바로 그리면, 새로고침할 때 브라우저가 POST를 다시 보내 답변이 또 등록됩니다.
