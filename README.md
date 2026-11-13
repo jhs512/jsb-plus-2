@@ -1675,3 +1675,37 @@ if (!bindingResult.hasFieldErrors("email") && userService.existsByEmail(form.ema
 
 **결과**
 ![중복과 불일치](docs/steps/022-04-1.jpg)
+
+### 023-01 로그인과 로그아웃, 폼 로그인
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/023-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/023-01)
+
+**무엇을** 로그인을 만들었습니다. 로그인 화면(`/user/login`)은 직접 만들고, 로그인 **처리**는 스프링 시큐리티에 맡깁니다. 개발용 계정(`admin`, `user1`, `user2`)도 샘플 데이터에 넣었습니다.
+
+**왜** 교재 3-07. 로그인 폼이 전송되면 시큐리티 필터가 `UserSecurityService.loadUserByUsername()`으로 회원을 찾고, 저장된 해시와 입력한 비밀번호를 `PasswordEncoder.matches()`로 비교합니다.
+
+`SecurityConfig.java`
+```diff
++ .formLogin(formLogin -> formLogin
++         .loginPage("/user/login")    // 화면은 우리가 만든 것
++         .defaultSuccessUrl("/"))     // 처리(POST /user/login)는 시큐리티가
++ .logout(logout -> logout
++         .logoutUrl("/user/logout")   // 교재는 GET 로그아웃, 여기서는 기본값대로 POST
++         .logoutSuccessUrl("/")
++         .invalidateHttpSession(true));
+```
+
+`UserSecurityService.java` (새 파일, 핵심)
+```java
+@Override
+public UserDetails loadUserByUsername(String username) {
+    SiteUser siteUser = userRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+    UserRole role = "admin".equals(username) ? UserRole.ADMIN : UserRole.USER;
+    return new User(siteUser.getUsername(), siteUser.getPassword(),
+            List.of(new SimpleGrantedAuthority(role.getValue())));
+}
+```
+
+**결과** 실패하면 `?error`, 성공하면 `/`로 302 됩니다. 아직 내비게이션 바는 로그인 여부를 모르고 계속 "회원가입"을 보여 줍니다(다음 커밋).
+![로그인 실패](docs/steps/023-01-1.jpg)
+![로그인 성공](docs/steps/023-01-2.jpg)

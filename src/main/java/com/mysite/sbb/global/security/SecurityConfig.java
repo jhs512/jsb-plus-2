@@ -29,6 +29,17 @@ public class SecurityConfig {
                 // H2 콘솔의 폼에는 CSRF 토큰이 없으므로 검사 제외
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/h2-console/**")
+                )
+                // 로그인 폼은 우리가 만든 /user/login 화면을 사용. 처리(POST /user/login)는 시큐리티가 한다.
+                .formLogin(formLogin -> formLogin
+                        .loginPage("/user/login")
+                        .defaultSuccessUrl("/")
+                )
+                // 로그아웃은 POST /user/logout (CSRF 보호를 위해 GET이 아닌 POST, 교재와 다름)
+                .logout(logout -> logout
+                        .logoutUrl("/user/logout")
+                        .logoutSuccessUrl("/")
+                        .invalidateHttpSession(true)
                 );
 
         return http.build();

@@ -2,6 +2,7 @@ package com.mysite.sbb.global.initData;
 
 import com.mysite.sbb.domain.question.question.entity.Question;
 import com.mysite.sbb.domain.question.question.repository.QuestionRepository;
+import com.mysite.sbb.domain.user.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
@@ -21,6 +22,7 @@ public class BaseInitData {
     @Lazy
     private BaseInitData self;
     private final QuestionRepository questionRepository;
+    private final UserService userService;
 
     @Bean
     @Order(1)
@@ -31,6 +33,11 @@ public class BaseInitData {
     @Transactional
     public void work1() {
         if (questionRepository.count() > 0) return; // 이미 있으면 다시 만들지 않는다.
+
+        // 개발/테스트용 계정 (비밀번호 1234)
+        userService.create("admin", "admin@test.com", "1234");
+        userService.create("user1", "user1@test.com", "1234");
+        userService.create("user2", "user2@test.com", "1234");
 
         Question q1 = new Question("sbb가 무엇인가요?", "sbb에 대해서 알고 싶습니다.");
         questionRepository.save(q1);

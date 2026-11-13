@@ -12,7 +12,11 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.logout;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -71,5 +75,36 @@ class UserControllerTest {
         mvc.perform(signup("newuser", "1234", "1234", "not-email"))
                 .andExpect(view().name("signup_form"))
                 .andExpect(model().attributeHasFieldErrors("form", "email"));
+    }
+
+    @Test
+    @DisplayName("로그인 성공 -> 인증됨, / 로 이동")
+    void t5() throws Exception {
+        mvc.perform(formLogin("/user/login").user("user1").password("1234"))
+                .andExpect(authenticated().withUsername("user1").withRoles("USER"))
+                .andExpect(redirectedUrl("/"));
+    }
+
+    @Test
+    @DisplayName("admin 계정은 ADMIN 권한")
+    void t6() throws Exception {
+        mvc.perform(formLogin("/user/login").user("admin").password("1234"))
+                .andExpect(authenticated().withRoles("ADMIN"));
+    }
+
+    @Test
+    @DisplayName("비밀번호 틀림 -> 인증 안 됨, /user/login?error")
+    void t7() throws Exception {
+        mvc.perform(formLogin("/user/login").user("user1").password("wrong"))
+                .andExpect(unauthenticated())
+                .andExpect(redirectedUrl("/user/login?error"));
+    }
+
+    @Test
+    @DisplayName("로그아웃 -> / 로 이동")
+    void t8() throws Exception {
+        mvc.perform(logout("/user/logout"))
+                .andExpect(unauthenticated())
+                .andExpect(redirectedUrl("/"));
     }
 }

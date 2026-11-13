@@ -67,4 +67,10 @@ public class UserController {
 
         return "redirect:/";
     }
+
+    // 화면만 보여준다. POST /user/login 처리는 스프링 시큐리티 필터가 담당한다.
+    @GetMapping("/login")
+    public String showLogin() {
+        return "login_form";
+    }
 }

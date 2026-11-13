@@ -1,0 +1,28 @@
+<html layout:decorate="~{layout}">
+<head>
+    <title>로그인</title>
+</head>
+<div layout:fragment="content" class="container my-3">
+    <div class="my-3 border-bottom">
+        <h4>로그인</h4>
+    </div>
+    <!-- 로그인 실패 시 시큐리티가 /user/login?error 로 보낸다. -->
+    <div th:if="${param.error}" class="alert alert-danger">
+        사용자ID 또는 비밀번호를 확인해 주세요.
+    </div>
+    <!-- 시큐리티의 로그인 처리 필터는 username, password 파라미터를 읽는다. -->
+    <form th:action="@{/user/login}" method="post">
+        <div class="mb-3">
+            <label class="form-label w-100">사용자ID
+                <input type="text" name="username" class="form-control" autofocus>
+            </label>
+        </div>
+        <div class="mb-3">
+            <label class="form-label w-100">비밀번호
+                <input type="password" name="password" class="form-control">
+            </label>
+        </div>
+        <button type="submit" class="btn btn-primary">로그인</button>
+    </form>
+</div>
+</html>
