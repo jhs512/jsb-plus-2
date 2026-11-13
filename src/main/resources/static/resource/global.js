@@ -1,5 +1,20 @@
 // 모든 페이지에서 사용하는 공통 스크립트 (14168 42~44강)
 document.addEventListener("DOMContentLoaded", () => {
+    // textarea.markdown-editor 를 마크다운 에디터로 바꾼다. (도전과제 3-14)
+    // forceSync: 입력할 때마다 원래 textarea 값도 갱신 -> 폼 전송, 검증 실패 시 값 유지가 그대로 동작
+    if (window.EasyMDE) {
+        document.querySelectorAll("textarea.markdown-editor").forEach((textarea) => {
+            new EasyMDE({
+                element: textarea,
+                forceSync: true,
+                spellChecker: false,
+                status: false,
+                minHeight: "200px",
+                placeholder: "마크다운 문법을 사용할 수 있습니다.",
+            });
+        });
+    }
+
     // <select value="B"> 처럼 value 속성으로 기본 선택값을 지정할 수 있게 한다.
     document.querySelectorAll("select[value]").forEach((select) => {
         const value = select.getAttribute("value");

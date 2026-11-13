@@ -11,7 +11,7 @@
         <th:block th:replace="~{form_errors :: formErrorsFragment}"></th:block>
         <div class="mb-3">
             <label class="form-label w-100">내용
-                <textarea th:field="*{content}" class="form-control" rows="10" autofocus></textarea>
+                <textarea th:field="*{content}" class="form-control markdown-editor" rows="10"></textarea>
             </label>
         </div>
         <input type="submit" value="저장하기" class="btn btn-primary my-2">

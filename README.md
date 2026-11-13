@@ -2859,3 +2859,40 @@ public OidcUser loadUser(OidcUserRequest userRequest) {
 > **교재와 다른 점** 교재에는 없는 도전과제입니다. 1차 저장소에서는 구현(037-01) 뒤 실제 로그인을 해 보고 나서야 이 버그를 찾았습니다. 이번에는 그 순서를 그대로 실험 → 해결로 남겼습니다.
 >
 > **확인해 볼 것** 설정의 scope에서 `openid`를 빼고(`profile, email`만) 다시 로그인해 보세요. 이번에는 `SocialOAuth2UserService`가 호출됩니다. 두 서비스를 모두 등록해 두면 scope가 바뀌어도 회원 연결이 끊기지 않습니다.
+
+### 038-01 마크다운 에디터, EasyMDE 적용
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/038-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/038-01)
+
+**무엇을** 질문·답변 입력칸을 마크다운 에디터 **EasyMDE**로 바꿨습니다. `markdown-editor` 클래스가 붙은 textarea만 에디터로 바뀝니다.
+
+**왜** 도전과제 3-14 "마크다운 에디터". 교재가 추천한 SimpleMDE는 더 이상 관리되지 않아서 후속 프로젝트인 EasyMDE를 씁니다. 서버 코드는 그대로이고, 화면에서 입력만 편해집니다.
+
+`layout.html`
+```html
+<!-- cdnjs에 없어서 jsDelivr 사용, 버전 고정 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.19.0/dist/easymde.min.css">
+<script src="https://cdn.jsdelivr.net/npm/easymde@2.19.0/dist/easymde.min.js" defer></script>
+```
+
+`question_form.html` (answer_form, question_detail도 같음)
+```diff
+- <textarea th:field="*{content}" class="form-control" rows="10" autofocus></textarea>
++ <textarea th:field="*{content}" class="form-control markdown-editor" rows="10"></textarea>
+```
+
+`global.js`
+```js
+document.querySelectorAll("textarea.markdown-editor").forEach((textarea) => {
+    new EasyMDE({
+        element: textarea,
+        forceSync: true,   // 입력할 때마다 원래 textarea 값도 갱신 → 폼 전송, 검증 실패 시 값 유지가 그대로 동작
+        spellChecker: false,
+    });
+});
+```
+
+**결과**
+![EasyMDE 에디터](docs/steps/038-01-1.jpg)
+![저장 후 렌더링](docs/steps/038-01-2.jpg)
+
+> **확인해 볼 것** `forceSync: true`를 지우고 내용만 입력한 채 등록해 보세요. 에디터는 화면에 따로 그려지는 부품이라, 원래 textarea가 비어 있는 채로 전송되어 "내용을 입력해주세요" 검증 에러가 날 수 있습니다. (EasyMDE는 폼 submit 때 한 번 동기화하지만, 다른 방식으로 전송하면 빠질 수 있습니다.)
