@@ -2557,3 +2557,43 @@ public List<Category> categories() { return categoryService.getAll(); }
 ![카테고리 select](docs/steps/032-02-2.jpg)
 
 > **확인해 볼 것** 탭을 눌러도 검색어(`kw`)는 유지되고, 페이지는 처음으로 돌아갑니다. 링크 하나에 `category`, `kw`, `page`를 함께 넣기 때문입니다.
+
+### 033-01 비밀번호 변경, 현재 비밀번호 확인과 플래시 메시지
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/033-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/033-01)
+
+**무엇을** 로그인한 사용자가 비밀번호를 바꾸는 화면(`/user/password`)을 만들었습니다. 현재 비밀번호를 확인하고, 새 비밀번호 두 칸이 같은지 검사한 뒤, 성공하면 플래시 메시지를 띄웁니다.
+
+**왜** 도전과제 3-14 "비밀번호 변경". DB에는 암호화된 값만 있으므로 현재 비밀번호는 `passwordEncoder.matches(평문, 암호문)`으로 비교해야 합니다. 같은 평문도 BCrypt로 암호화할 때마다 결과가 달라서 `encode()` 결과끼리 비교하면 항상 틀립니다.
+
+`UserController.java`
+```java
+@PreAuthorize("isAuthenticated()")
+@PutMapping("/password")
+@Transactional
+public String changePassword(@ModelAttribute("form") @Valid PasswordChangeForm form, BindingResult bindingResult,
+                             Principal principal, RedirectAttributes redirectAttributes) {
+    SiteUser user = userService.getUser(principal.getName());
+    if (!bindingResult.hasFieldErrors("currentPassword") && !userService.matchesPassword(user, form.currentPassword()))
+        bindingResult.rejectValue("currentPassword", "mismatch", "02-currentPassword-현재 비밀번호가 올바르지 않습니다.");
+    ...
+    userService.changePassword(user, form.newPassword1());
+    redirectAttributes.addFlashAttribute("msg", "비밀번호가 변경되었습니다.");   // 리다이렉트 후 한 번만
+    return "redirect:/user/password";
+}
+```
+
+`UserService.java` / `SiteUser.java`
+```diff
++ public boolean matchesPassword(SiteUser user, String rawPassword) {
++     return passwordEncoder.matches(rawPassword, user.getPassword());
++ }
++ public void changePassword(SiteUser user, String newRawPassword) {
++     user.changePassword(passwordEncoder.encode(newRawPassword));   // 변경 감지로 UPDATE
++ }
+```
+
+**결과**
+![현재 비밀번호 틀림](docs/steps/033-01-1.jpg)
+![변경 성공과 302](docs/steps/033-01-2.jpg)
+
+> **확인해 볼 것** 성공 화면에서 새로고침(F5)을 해 보세요. 메시지가 사라집니다. 플래시 속성은 리다이렉트 직후 요청 한 번에만 모델에 담기기 때문입니다. 리다이렉트 없이 바로 화면을 그리면 새로고침 때 PUT이 다시 전송됩니다(PRG 패턴).

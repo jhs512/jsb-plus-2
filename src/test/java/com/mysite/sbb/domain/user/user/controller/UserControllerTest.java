@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -18,6 +20,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -32,6 +35,8 @@ class UserControllerTest {
     private MockMvc mvc;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private MockHttpServletRequestBuilder signup(String username, String pw1, String pw2, String email) {
         return post("/user/signup").with(csrf())
@@ -106,5 +111,30 @@ class UserControllerTest {
         mvc.perform(logout("/user/logout"))
                 .andExpect(unauthenticated())
                 .andExpect(redirectedUrl("/"));
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경: 현재 비밀번호가 맞으면 변경")
+    @WithUserDetails("user1")
+    void t9() throws Exception {
+        mvc.perform(put("/user/password").with(csrf())
+                        .param("currentPassword", "1234")
+                        .param("newPassword1", "5678")
+                        .param("newPassword2", "5678"))
+                .andExpect(redirectedUrl("/user/password"));
+
+        assertThat(passwordEncoder.matches("5678", userRepository.findByUsername("user1").get().getPassword())).isTrue();
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경: 현재 비밀번호가 틀리면 에러")
+    @WithUserDetails("user1")
+    void t10() throws Exception {
+        mvc.perform(put("/user/password").with(csrf())
+                        .param("currentPassword", "wrong")
+                        .param("newPassword1", "5678")
+                        .param("newPassword2", "5678"))
+                .andExpect(view().name("password_form"))
+                .andExpect(model().attributeHasFieldErrorCode("form", "currentPassword", "mismatch"));
     }
 }

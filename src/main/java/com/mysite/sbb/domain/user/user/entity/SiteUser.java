@@ -26,4 +26,9 @@ public class SiteUser extends BaseEntity {
         this.password = password;
         this.email = email;
     }
+
+    // 암호화된 비밀번호만 받는다. (암호화는 UserService가 담당)
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
 }

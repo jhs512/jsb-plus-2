@@ -1,17 +1,24 @@
 package com.mysite.sbb.domain.user.user.controller;
 
+import com.mysite.sbb.domain.user.user.entity.SiteUser;
 import com.mysite.sbb.domain.user.user.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.security.Principal;
 
 @Controller
 @RequestMapping("/user")
@@ -72,5 +79,53 @@ public class UserController {
     @GetMapping("/login")
     public String showLogin() {
         return "login_form";
+    }
+
+    // ===== 비밀번호 변경 (도전과제 3-14) =====
+    public record PasswordChangeForm(
+            @NotBlank(message = "01-currentPassword-현재 비밀번호를 입력해주세요.")
+            String currentPassword,
+
+            @NotBlank(message = "03-newPassword1-새 비밀번호를 입력해주세요.")
+            @Size(min = 4, message = "04-newPassword1-새 비밀번호는 4자 이상이어야 합니다.")
+            String newPassword1,
+
+            @NotBlank(message = "05-newPassword2-새 비밀번호 확인을 입력해주세요.")
+            String newPassword2
+    ) {
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/password")
+    public String showChangePassword(@ModelAttribute("form") PasswordChangeForm form) {
+        return "password_form";
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping("/password")
+    @Transactional
+    public String changePassword(
+            @ModelAttribute("form") @Valid PasswordChangeForm form,
+            BindingResult bindingResult,
+            Principal principal,
+            RedirectAttributes redirectAttributes
+    ) {
+        SiteUser user = userService.getUser(principal.getName());
+
+        if (!bindingResult.hasFieldErrors("currentPassword") && !userService.matchesPassword(user, form.currentPassword())) {
+            bindingResult.rejectValue("currentPassword", "mismatch", "02-currentPassword-현재 비밀번호가 올바르지 않습니다.");
+        }
+
+        if (form.newPassword1() != null && !form.newPassword1().equals(form.newPassword2())) {
+            bindingResult.rejectValue("newPassword2", "passwordInCorrect", "06-newPassword2-새 비밀번호가 서로 일치하지 않습니다.");
+        }
+
+        if (bindingResult.hasErrors()) return "password_form";
+
+        userService.changePassword(user, form.newPassword1());
+
+        // 리다이렉트 후 한 번만 보여줄 메시지 (세션에 잠깐 저장되었다가 사라짐)
+        redirectAttributes.addFlashAttribute("msg", "비밀번호가 변경되었습니다.");
+        return "redirect:/user/password";
     }
 }
