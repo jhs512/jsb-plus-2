@@ -1,5 +1,6 @@
 package com.mysite.sbb.global.initData;
 
+import com.mysite.sbb.domain.question.category.service.CategoryService;
 import com.mysite.sbb.domain.question.question.entity.Question;
 import com.mysite.sbb.domain.question.question.repository.QuestionRepository;
 import com.mysite.sbb.domain.user.user.entity.SiteUser;
@@ -24,6 +25,7 @@ public class BaseInitData {
     private BaseInitData self;
     private final QuestionRepository questionRepository;
     private final UserService userService;
+    private final CategoryService categoryService;
 
     @Bean
     @Order(1)
@@ -36,6 +38,10 @@ public class BaseInitData {
         if (questionRepository.count() > 0) return; // 이미 있으면 다시 만들지 않는다.
 
         // 개발/테스트용 계정 (비밀번호 1234)
+        categoryService.create("qna", "질문답변");
+        categoryService.create("free", "자유게시판");
+        categoryService.create("lecture", "강좌");
+
         userService.create("admin", "admin@test.com", "1234");
         SiteUser user1 = userService.create("user1", "user1@test.com", "1234");
         SiteUser user2 = userService.create("user2", "user2@test.com", "1234");

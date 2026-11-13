@@ -2487,3 +2487,30 @@ public void delete(Comment comment) {
 **결과** 확인 창에서 "확인"을 누르면 `POST(_method=DELETE)` → 302이고, 댓글이 사라집니다.
 ![삭제 링크](docs/steps/031-03-1.jpg)
 ![DELETE 302](docs/steps/031-03-2.jpg)
+
+### 032-01 카테고리, Category 엔티티와 샘플 데이터
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/032-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/032-01)
+
+**무엇을** 카테고리 엔티티(`Category`)와 서비스를 만들고, 샘플 데이터로 "질문답변(qna)·자유게시판(free)·강좌(lecture)" 세 개를 넣었습니다.
+
+**왜** 도전과제 3-14 "카테고리". 게시판 종류를 코드(enum 등)가 아니라 **데이터**로 관리하면, 카테고리를 추가할 때 코드를 고치지 않아도 됩니다. URL에는 숫자 id 대신 의미 있는 `code`를 씁니다(예: `?category=qna`).
+
+`Category.java` (새 파일)
+```java
+@Entity
+public class Category extends BaseEntity {
+    @Column(unique = true)
+    private String code;   // URL에 쓰는 값: qna
+    private String name;   // 화면에 보이는 이름: 질문답변
+}
+```
+
+`BaseInitData.java`
+```diff
++ categoryService.create("qna", "질문답변");
++ categoryService.create("free", "자유게시판");
++ categoryService.create("lecture", "강좌");
+```
+
+**결과**
+![CATEGORY](docs/steps/032-01-1.jpg)
