@@ -1985,3 +1985,43 @@ public void delete(Answer answer) {
 ![DB에도 남아 있다](docs/steps/025-05-2.jpg)
 
 > **왜?** `cascade = REMOVE`는 "부모(질문)를 삭제할 때 자식도 삭제"입니다. 부모의 목록에서 **자식 하나를 빼는 것**은 다른 이야기입니다. 그건 `orphanRemoval`이 담당합니다. 다음 커밋에서 해결합니다.
+
+### 025-06 수정과 삭제, orphanRemoval과 equals/hashCode로 답변 삭제
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/025-06) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/025-06)
+
+**무엇을** `@OneToMany`에 `orphanRemoval = true`를 넣고, `BaseEntity`에 id 기준 `equals/hashCode`를 만들었습니다.
+
+**왜** `orphanRemoval`은 "부모의 목록에서 빠진 자식(고아)은 DB에서도 지운다"는 뜻입니다(14168 37강). `equals`는 리스트의 `remove(answer)`가 **같은 id를 가진 답변**을 정확히 찾도록 하기 위해서입니다. 기본 `equals`는 메모리 주소가 같아야만 같다고 봅니다(14168 37·38강).
+
+`Question.java`
+```diff
+- @OneToMany(mappedBy = "question", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
++ @OneToMany(mappedBy = "question", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+  private List<Answer> answers = new ArrayList<>();
+```
+
+`BaseEntity.java`
+```java
+@Override
+public boolean equals(Object o) {
+    if (o == this) return true;                    // 동치성(같은 객체)이면 바로 true
+    if (o == null || getClass() != o.getClass()) return false;
+    return id == ((BaseEntity) o).id;              // 동등성(같은 id)
+}
+
+@Override
+public int hashCode() { return Objects.hashCode(id); }
+```
+
+| 옵션 | 언제 지우나 |
+|---|---|
+| `cascade = REMOVE` | 부모(질문)를 삭제할 때 자식(답변)도 |
+| `orphanRemoval = true` | 부모의 목록에서 **빠진** 자식만 |
+
+**결과** 같은 삭제 버튼으로 이번에는 답변이 지워졌고, 로그에 `delete from answer where id=?`가 찍혔습니다.
+
+| 변경 전 (025-05) | 변경 후 |
+|---|---|
+| ![전](docs/steps/025-05-1.jpg) | ![후](docs/steps/025-06-1.jpg) |
+
+![DELETE SQL](docs/steps/025-06-2.jpg)

@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -74,4 +75,13 @@ class AnswerControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    @DisplayName("DELETE /answer/delete/1 (본인) -> 리스트에서 제거되어 orphanRemoval로 DELETE")
+    void t5() throws Exception {
+        mvc.perform(delete("/answer/delete/1").with(csrf()))
+                .andExpect(redirectedUrl("/question/detail/2"));
+
+        answerRepository.flush();
+        assertThat(answerRepository.findById(1)).isEmpty();
+    }
 }

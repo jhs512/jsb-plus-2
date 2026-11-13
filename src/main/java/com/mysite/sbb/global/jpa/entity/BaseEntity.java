@@ -10,6 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import static jakarta.persistence.GenerationType.IDENTITY;
 
@@ -27,4 +28,19 @@ public abstract class BaseEntity {
 
     @LastModifiedDate // INSERT, UPDATE 될 때 자동 기록
     private LocalDateTime modifyDate;
+
+    // 같은 id면 같은 엔티티로 본다. (14168 37, 38강)
+    // -> question.getAnswers().remove(answer) 가 정확한 답변을 찾아 지울 수 있다.
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true; // 동치성(같은 객체)이면 바로 true
+        if (o == null || getClass() != o.getClass()) return false;
+        BaseEntity that = (BaseEntity) o;
+        return id == that.id;       // 동등성(같은 id)
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }
