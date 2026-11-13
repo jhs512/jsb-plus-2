@@ -582,3 +582,18 @@ com.mysite.sbb                         com.mysite.sbb
 
 > **왜 `question/question`처럼 두 번?** 앞의 `question`은 **큰 주제(게시판)**, 뒤는 그 안의 **개별 엔티티**입니다. 답변은 질문 게시판에 속하므로 `question/answer`입니다(14168의 `post/post`, `post/postComment`와 같은 원리).
 > **결과** 파일 위치와 `package`, `import`만 바뀌었습니다. 동작은 같아서 테스트 20건이 그대로 통과합니다.
+
+### 006-02 도메인별 분류, TestInitData를 BaseInitData로
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/006-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/006-02)
+
+**무엇을** `TestInitData`의 이름을 `BaseInitData`로 바꿨습니다.
+
+**왜** 이 샘플 데이터는 테스트뿐 아니라 개발 환경(dev)에서도 쓰입니다. 이름이 "Test"면 테스트 전용으로 오해하기 쉬워서, 용도에 맞게 바꿉니다(14168 2강).
+
+```diff
+- public class TestInitData {
++ public class BaseInitData {
+      @Autowired @Lazy
+-     private TestInitData self;
++     private BaseInitData self;
+```

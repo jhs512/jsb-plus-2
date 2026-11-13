@@ -13,16 +13,16 @@ import org.springframework.transaction.annotation.Transactional;
 // 앱이 시작되자마자 샘플 데이터를 만든다. (14163 14강, 14168 2강)
 @Configuration
 @RequiredArgsConstructor
-public class TestInitData {
+public class BaseInitData {
     // 자기 자신을 프록시로 주입받는다.
     // this.work1()으로 직접 부르면 @Transactional이 적용되지 않기 때문에 self.work1()로 호출한다.
     @Autowired
     @Lazy
-    private TestInitData self;
+    private BaseInitData self;
     private final QuestionRepository questionRepository;
 
     @Bean
-    public ApplicationRunner testInitDataApplicationRunner() {
+    public ApplicationRunner baseInitDataApplicationRunner() {
         return args -> self.work1();
     }
 
