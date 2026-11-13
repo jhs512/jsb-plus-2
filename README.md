@@ -1126,3 +1126,44 @@ public String create(@RequestParam("subject") String subject,
 ![등록 후 목록](docs/steps/016-01-2.jpg)
 
 > **확인해 볼 것** 지금은 제목을 비워도 저장됩니다. 다음 커밋에서 검증을 넣습니다.
+
+### 016-02 질문 등록, record 폼과 @Valid 검증
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/016-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/016-02)
+
+**무엇을** 폼 데이터를 `record QuestionForm`으로 받고, `@NotBlank`, `@Size`로 검증합니다. 검증에 실패하면 저장하지 않고 폼을 다시 보여 줍니다.
+
+**왜** 교재는 Getter/Setter가 있는 클래스를 쓰지만 `record`로 코드를 줄입니다(14168 40강). `BindingResult`가 없으면 검증 실패 시 바로 400 예외가 나므로, `@Valid` 바로 뒤에 둬서 실패 후의 처리를 직접 정합니다(14168 13강). 에러 메시지 앞에 붙인 `01-subject-`는 다음 커밋에서 정렬과 포커스에 씁니다.
+
+`QuestionController.java`
+```java
+public record QuestionForm(
+        @NotBlank(message = "01-subject-제목은 필수항목입니다.")
+        @Size(max = 200, message = "02-subject-제목은 200자 이하로 입력해주세요.")
+        String subject,
+
+        @NotBlank(message = "03-content-내용은 필수항목입니다.")
+        String content
+) {}
+
+@PostMapping("/create")
+public String create(@ModelAttribute("form") @Valid QuestionForm form,
+                     BindingResult bindingResult) {     // 꼭 @Valid 바로 뒤
+    if (bindingResult.hasErrors()) return "question_form"; // 폼 다시 보여주기
+    questionService.create(form.subject(), form.content());
+    return "redirect:/question/list";
+}
+```
+
+`question_form.html`
+```diff
+- <form method="post">
++ <form th:object="${form}" method="post">
++     <ul th:if="${#fields.hasAnyErrors()}" class="alert alert-danger">
++         <li th:each="err : ${#fields.allErrors()}" th:text="${err}">에러</li>
++     </ul>
+-     <input type="text" name="subject" class="form-control">
++     <input type="text" th:field="*{subject}" class="form-control">   <!-- name, id, value 자동 -->
+```
+
+**결과** 제목을 비우면 저장되지 않고, 입력했던 내용은 그대로 남습니다.
+![검증 실패](docs/steps/016-02-1.jpg)

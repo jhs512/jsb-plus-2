@@ -13,6 +13,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -72,5 +73,18 @@ class QuestionControllerTest {
 
         mvc.perform(get("/question/list"))
                 .andExpect(content().string(containsString("새 질문 제목")));
+    }
+
+    @Test
+    @DisplayName("POST /question/create, 빈 값 -> 저장하지 않고 폼과 에러를 다시 보여준다")
+    void t6() throws Exception {
+        mvc.perform(post("/question/create")
+                        .param("subject", "")
+                        .param("content", "내용은 입력함"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("question_form"))
+                .andExpect(model().attributeHasFieldErrors("form", "subject"))
+                .andExpect(content().string(containsString("제목은 필수항목입니다.")))
+                .andExpect(content().string(containsString("내용은 입력함"))); // 입력값 유지
     }
 }

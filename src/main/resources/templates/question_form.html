@@ -4,16 +4,22 @@
 </head>
 <div layout:fragment="content" class="container">
     <h5 class="my-3 border-bottom pb-2">질문 등록</h5>
+    <!-- th:object: 이 안에서는 *{필드명}으로 form의 필드에 접근 (14168 22강) -->
     <!-- action을 생략하면 현재 URL(/question/create)로 전송된다. (14168 26강) -->
-    <form method="post">
+    <form th:object="${form}" method="post">
+        <!-- 검증 에러 메시지 -->
+        <ul th:if="${#fields.hasAnyErrors()}" class="alert alert-danger ps-4">
+            <li th:each="err : ${#fields.allErrors()}" th:text="${err}">에러</li>
+        </ul>
         <div class="mb-3">
-            <label class="form-label">제목
-                <input type="text" name="subject" class="form-control">
+            <label class="form-label w-100">제목
+                <!-- th:field: name, id, value 속성을 자동으로 채워 준다. 검증 실패 시 입력값이 유지된다. -->
+                <input type="text" th:field="*{subject}" class="form-control" autofocus>
             </label>
         </div>
         <div class="mb-3">
             <label class="form-label w-100">내용
-                <textarea name="content" class="form-control" rows="10"></textarea>
+                <textarea th:field="*{content}" class="form-control" rows="10"></textarea>
             </label>
         </div>
         <input type="submit" value="저장하기" class="btn btn-primary my-2">
