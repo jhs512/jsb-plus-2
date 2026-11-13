@@ -1,0 +1,50 @@
+<html layout:decorate="~{layout}">
+<head>
+    <title>프로필</title>
+</head>
+<div layout:fragment="content" class="container my-3">
+    <div class="my-3 border-bottom d-flex justify-content-between align-items-end">
+        <h4 th:text="|${user.username}님의 프로필|">user1님의 프로필</h4>
+        <a th:href="@{/user/password}" class="btn btn-sm btn-outline-secondary mb-2">비밀번호 변경</a>
+    </div>
+    <dl class="row">
+        <dt class="col-3">이메일</dt>
+        <dd class="col-9" th:text="${user.email}">user1@test.com</dd>
+        <dt class="col-3">가입일</dt>
+        <dd class="col-9" th:text="${#temporals.format(user.createDate, 'yyyy-MM-dd')}">2026-01-01</dd>
+        <dt class="col-3">활동</dt>
+        <dd class="col-9" th:text="|질문 ${questionCount} · 답변 ${answerCount} · 댓글 ${commentCount}|">질문 0 · 답변 0 · 댓글 0</dd>
+    </dl>
+    <div class="row">
+        <div class="col-md-4">
+            <h6>최근 질문</h6>
+            <ul class="list-group mb-3">
+                <li class="list-group-item" th:each="q : ${questions}">
+                    <a th:href="@{|/question/detail/${q.id}|}" th:text="${q.subject}">질문</a>
+                </li>
+                <li class="list-group-item text-secondary" th:if="${questions.isEmpty()}">없음</li>
+            </ul>
+        </div>
+        <div class="col-md-4">
+            <h6>최근 답변</h6>
+            <ul class="list-group mb-3">
+                <li class="list-group-item" th:each="a : ${answers}">
+                    <a th:href="@{|/question/detail/${a.question.id}#answer_${a.id}|}"
+                       th:text="${#strings.abbreviate(a.content, 40)}">답변</a>
+                </li>
+                <li class="list-group-item text-secondary" th:if="${answers.isEmpty()}">없음</li>
+            </ul>
+        </div>
+        <div class="col-md-4">
+            <h6>최근 댓글</h6>
+            <ul class="list-group mb-3">
+                <li class="list-group-item" th:each="c : ${comments}">
+                    <a th:href="@{|/question/detail/${c.rootQuestionId}|}"
+                       th:text="${#strings.abbreviate(c.content, 40)}">댓글</a>
+                </li>
+                <li class="list-group-item text-secondary" th:if="${comments.isEmpty()}">없음</li>
+            </ul>
+        </div>
+    </div>
+</div>
+</html>

@@ -2,6 +2,7 @@ package com.mysite.sbb.domain.question.question.repository;
 
 import com.mysite.sbb.domain.question.category.entity.Category;
 import com.mysite.sbb.domain.question.question.entity.Question;
+import com.mysite.sbb.domain.user.user.entity.SiteUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,6 +26,11 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
     // WHERE subject IN (?, ?)
     List<Question> findBySubjectIn(List<String> subjects);
+
+    // 프로필: 내가 쓴 질문 최근 10개, 개수
+    List<Question> findTop10ByAuthorOrderByCreateDateDesc(SiteUser author);
+
+    long countByAuthor(SiteUser author);
 
     // WHERE id < ? ORDER BY id DESC
     List<Question> findByIdLessThanOrderByIdDesc(int id);

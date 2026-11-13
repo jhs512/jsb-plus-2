@@ -2675,3 +2675,41 @@ assertThat(userService.matchesPassword(user, "1234")).isFalse();
 > **교재와 다른 점** 교재에는 없는 도전과제입니다. 메일 설정이 없는 개발 환경에서는 033-02의 `MailService`가 로그로 대신 남기므로 위처럼 로그에서 임시 비밀번호를 확인할 수 있습니다.
 >
 > **확인해 볼 것** 가입하지 않은 이메일(`nobody@test.com`)을 넣어 보세요. 화면 문구는 똑같고, 서버 로그에는 아무것도 남지 않습니다.
+
+### 034-01 프로필, 내 정보와 최근 질문·답변·댓글
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/034-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/034-01)
+
+**무엇을** 내 프로필(`/user/profile`)을 만들었습니다. 이메일, 가입일, 활동 수(질문·답변·댓글)와 최근 질문·답변·댓글 10개씩을 보여 줍니다. 내비게이션 바의 아이디를 프로필 링크로 바꾸고, 비밀번호 변경 링크는 프로필 화면으로 옮겼습니다.
+
+**왜** 도전과제 3-14 "프로필". 새 쿼리를 직접 쓰지 않고 Spring Data JPA의 **메서드 이름 쿼리**만으로 만들 수 있다는 것을 보여 줍니다.
+
+`QuestionRepository.java` (Answer, Comment도 같은 모양)
+```diff
++ List<Question> findTop10ByAuthorOrderByCreateDateDesc(SiteUser author);  // where author=? order by create_date desc limit 10
++ long countByAuthor(SiteUser author);                                      // select count(*) where author=?
+```
+
+`ProfileController.java`
+```java
+@PreAuthorize("isAuthenticated()")
+@GetMapping("/user/profile")
+@Transactional(readOnly = true)   // 조회 전용: 변경 감지를 하지 않아 가볍다
+public String profile(Principal principal, Model model) {
+    SiteUser user = userService.getUser(principal.getName());
+    model.addAttribute("questionCount", questionRepository.countByAuthor(user));
+    model.addAttribute("answers", answerRepository.findTop10ByAuthorOrderByCreateDateDesc(user));
+    ...
+}
+```
+
+`navbar.html`
+```diff
+- <span class="nav-link" sec:authentication="name">user1</span>
++ <a class="nav-link" th:href="@{/user/profile}" sec:authentication="name">user1</a>
+- <a class="nav-link" th:href="@{/user/password}">비밀번호 변경</a>      <!-- 프로필 화면으로 이동 -->
+```
+
+**결과**
+![프로필](docs/steps/034-01-1.jpg)
+
+> **확인해 볼 것** 메서드 이름에서 `Top10`을 `Top3`으로 바꾸고 실행하면 SQL 로그의 `fetch first ? rows only` 값이 바뀝니다. 이름의 철자가 틀리면(예: `findTop10ByAutor`) 앱이 아예 뜨지 않습니다. 쿼리를 만들 수 없기 때문입니다.

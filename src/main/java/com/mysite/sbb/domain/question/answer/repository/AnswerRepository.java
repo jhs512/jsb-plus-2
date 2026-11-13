@@ -2,13 +2,20 @@ package com.mysite.sbb.domain.question.answer.repository;
 
 import com.mysite.sbb.domain.question.answer.entity.Answer;
 import com.mysite.sbb.domain.question.question.entity.Question;
+import com.mysite.sbb.domain.user.user.entity.SiteUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface AnswerRepository extends JpaRepository<Answer, Integer> {
+    List<Answer> findTop10ByAuthorOrderByCreateDateDesc(SiteUser author);
+
+    long countByAuthor(SiteUser author);
+
     // 정렬은 Pageable의 Sort로 (최신순: createDate desc)
     Page<Answer> findByQuestion(Question question, Pageable pageable);
 
