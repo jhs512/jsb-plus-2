@@ -9,6 +9,69 @@
 - 단계 링크: **이 시점의 코드**(`/tree/태그`, 그 시점의 README와 이미지) · **변경 내용**(`/commit/태그`, diff)
 - 태그: 기능 태그(`004-03`)와 커밋 순번 태그(`001`, `002`, …)
 
+## 기술 스택
+- Java 25, Spring Boot 4.1.2, Gradle(Kotlin DSL)
+- Spring Data JPA(Hibernate), H2(dev: 파일 DB, test: 메모리 DB)
+- Thymeleaf + Layout Dialect, Bootstrap 5.3, EasyMDE
+- Spring Security(폼 로그인, OAuth2/OIDC 로그인), Validation, Mail, commonmark
+
+## 실행 방법
+```bash
+./gradlew bootRun     # http://localhost:8080 (dev 프로파일, 샘플 데이터 자동 생성)
+```
+```bash
+./gradlew test        # test 프로파일(메모리 DB)로 전체 테스트
+```
+- 개발용 계정: `admin`, `user1`, `user2` / 비밀번호 `1234` (BaseInitData)
+- H2 콘솔: http://localhost:8080/h2-console (JDBC URL `jdbc:h2:./db_dev`, 사용자 `sa`)
+- 메일 발송, 구글 로그인을 쓰려면 `application-secret.yaml.template`을 `application-secret.yaml`로 복사해 값을 채웁니다. 이 파일은 `.gitignore` 대상이고 **dev 프로파일에서만** 읽습니다.
+- 특정 단계의 코드를 실행해 보려면: `git checkout 016-03` (또는 순번 태그 `git checkout 040`)
+
+## 패키지 구조 (14168 방식)
+```
+com.mysite.sbb
+├── domain
+│   ├── home/home/controller          MainController (/ -> /question/list)
+│   ├── question/question             질문: entity, repository, service, controller
+│   ├── question/answer               답변
+│   ├── question/comment              댓글
+│   ├── question/category             카테고리
+│   ├── user/user                     회원, 로그인, 비밀번호, 소셜 로그인
+│   └── user/profile                  프로필
+└── global
+    ├── jpa/entity/BaseEntity         id, createDate, modifyDate, equals/hashCode
+    ├── initData                      BaseInitData(공통 샘플), DevInitData(dev 300건)
+    ├── security/SecurityConfig
+    └── exception, markdown, mail, web(GlobalModelAttribute)
+```
+
+## 교재 대비 주요 개선
+| 항목 | 교재 | 이 프로젝트 | 단계 |
+|---|---|---|---|
+| 환경 | Boot 3.2, Groovy, properties | Boot 4.1.2, Java 25, kts, yaml | 001 |
+| DB 설정 | DB 하나 | dev(파일)/test(메모리) 분리, 테스트는 항상 test 프로파일, SQL·바인딩 로그 | 003 |
+| 연관관계 | ManyToOne 기본(EAGER) | LAZY, mappedBy, cascade, orphanRemoval, batch fetch(N+1) | 004, 020, 025 |
+| 엔티티 | @Setter, 날짜 직접 대입 | BaseEntity + Auditing, 생성자와 의미 있는 메서드(addAnswer, modify) | 004, 009 |
+| 답변 저장 | answerRepository.save | question.addAnswer + 변경 감지 | 012 |
+| 테스트 | 실제 DB에 데이터 누적 | @Transactional 롤백, MockMvc, 테스트 77건 | 005~ |
+| 폼 | class + Getter/Setter | record + @ModelAttribute("form"), 정렬된 에러 + 첫 에러 필드 focus | 016 |
+| HTTP 메서드 | GET 삭제·추천, POST 수정 | DELETE 삭제, POST 추천, PUT 수정(_method + global.js) | 025, 026 |
+| 권한 실패 | 400 | 403 | 025 |
+| 마크다운 | th:utext 그대로 | 원본 HTML 이스케이프, 위험 URL 무력화 | 028 |
+| 비밀 설정 | - | public 저장소에 올리지 않고 dev에서만 import | 033 |
+| 조회 수 | - | 세션당 1회, DB에서 원자적 증가 | 036 |
+| 소셜 로그인 | - | OAuth2와 OIDC 두 경로 모두 회원 연결 | 037 |
+
+## 실험 커밋 (일부러 실패를 남긴 단계)
+README 제목에 **[실험]**이 붙은 단계는 "이렇게 하면 이런 문제가 생긴다"를 직접 보여 주려고 남긴 커밋입니다. 바로 다음 단계에서 고칩니다.
+- 테스트가 실패하는 커밋: `021-01`(시큐리티 의존성만 추가 → 모든 요청이 막혀 12건 실패), `028-02`(`${@빈.메서드()}` 호출이 Thymeleaf 3.1.5에서 막혀 2건 실패)
+- 테스트는 통과하지만 동작이 틀린 커밋: `002-01`, `004-03`, `005-04`, `016-04`, `021-03`, `025-05`, `028-04`, `037-01`
+
+## 검증하지 못한 부분
+- 실제 SMTP 메일 발송: 계정이 없어 메일 설정이 없을 때 로그로 대체되는 것까지만 확인했습니다.
+- 각 단계의 "확인해 볼 것" 중 코드를 바꿔 보라는 항목(예: 036-01 `clearAutomatically` 제거, 038-01 `forceSync` 제거)은 설명만 적었고 직접 실행해 보지 않았습니다.
+- 구글 로그인은 저장소 주인의 Google Cloud 프로젝트(테스트 사용자)로만 확인했습니다. 직접 해 보려면 자신의 클라이언트 ID를 만들어야 합니다.
+
 ## 작업내역
 
 ### 000-01 저장소 준비, README와 진행 계획
@@ -2896,3 +2959,12 @@ document.querySelectorAll("textarea.markdown-editor").forEach((textarea) => {
 ![저장 후 렌더링](docs/steps/038-01-2.jpg)
 
 > **확인해 볼 것** `forceSync: true`를 지우고 내용만 입력한 채 등록해 보세요. 에디터는 화면에 따로 그려지는 부품이라, 원래 textarea가 비어 있는 채로 전송되어 "내용을 입력해주세요" 검증 에러가 날 수 있습니다. (EasyMDE는 폼 submit 때 한 번 동기화하지만, 다른 방식으로 전송하면 빠질 수 있습니다.)
+
+### 039-01 마무리, README에 실행 방법·구조·개선 요약 정리
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/039-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/039-01)
+
+**무엇을** README 맨 위에 기술 스택, 실행 방법, 패키지 구조, 교재 대비 개선 표, 실험 커밋 목록, 검증하지 못한 부분을 정리했습니다. `docs/PLAN.md`의 캡처 설명도 실제로 한 방식(모든 이미지에 주석, 민감 정보 가림)으로 고쳤습니다.
+
+**왜** 작업내역은 단계별 기록이라 처음 온 사람은 전체 그림을 보기 어렵습니다. 맨 위에서 "무엇을 어떻게 바꿨는지"를 먼저 보고, 궁금한 단계로 내려가 읽을 수 있게 합니다.
+
+> **확인해 볼 것** 개선 표의 "단계" 칸 번호로 작업내역을 찾아가 보세요. 예를 들어 `036`을 찾으면 조회 수를 왜 DB에서 바로 더하는지와 그 SQL 로그를 볼 수 있습니다.
