@@ -1,6 +1,7 @@
 package com.mysite.sbb.domain.question.question.controller;
 
 import com.mysite.sbb.domain.question.answer.controller.AnswerController.AnswerForm;
+import com.mysite.sbb.domain.question.answer.service.AnswerService;
 import com.mysite.sbb.domain.question.question.entity.Question;
 import com.mysite.sbb.domain.question.question.service.QuestionService;
 import com.mysite.sbb.domain.user.user.service.UserService;
@@ -33,6 +34,7 @@ import java.security.Principal;
 public class QuestionController {
     private final QuestionService questionService;
     private final UserService userService;
+    private final AnswerService answerService;
 
     // @ResponseBody가 없으므로 반환값 "question_list"는 템플릿 이름이 된다.
     // -> templates/question_list.html 을 렌더링한 HTML이 응답 본문이 된다. (14163 28강)
@@ -54,10 +56,13 @@ public class QuestionController {
     public String detail(
             Model model,
             @PathVariable int id,
-            @ModelAttribute("answerForm") AnswerForm answerForm // 답변 폼(th:object)에 쓸 빈 객체
+            @ModelAttribute("answerForm") AnswerForm answerForm, // 답변 폼(th:object)에 쓸 빈 객체
+            @RequestParam(defaultValue = "0") int answerPage
     ) {
         Question question = questionService.getQuestion(id);
         model.addAttribute("question", question);
+        // 답변은 question.answers 전체 대신 페이지 단위로 (도전과제: 답변 페이징과 정렬)
+        model.addAttribute("answerPaging", answerService.getList(question, answerPage));
 
         return "question_detail";
     }

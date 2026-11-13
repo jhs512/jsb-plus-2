@@ -54,6 +54,7 @@ public class AnswerController {
         if (bindingResult.hasErrors()) {
             // 상세 화면을 다시 그리려면 question도 필요하다.
             model.addAttribute("question", question);
+            model.addAttribute("answerPaging", answerService.getList(question, 0));
             return "question_detail";
         }
 

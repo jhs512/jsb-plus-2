@@ -6,6 +6,10 @@ import com.mysite.sbb.domain.question.question.entity.Question;
 import com.mysite.sbb.domain.user.user.entity.SiteUser;
 import com.mysite.sbb.global.exception.DataNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,6 +21,12 @@ public class AnswerService {
     // 호출하는 쪽의 트랜잭션이 끝날 때 cascade PERSIST로 INSERT 된다.
     public Answer create(Question question, SiteUser author, String content) {
         return question.addAnswer(author, content);
+    }
+
+    // 답변 페이징 (도전과제 3-14): 5개씩, 최신순
+    public Page<Answer> getList(Question question, int page) {
+        Pageable pageable = PageRequest.of(page, 5, Sort.by(Sort.Order.desc("createDate"), Sort.Order.desc("id")));
+        return answerRepository.findByQuestion(question, pageable);
     }
 
     public void flush() {

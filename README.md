@@ -2320,3 +2320,34 @@ Page<Question> findAllByKeyword(@Param("kw") String kw, Pageable pageable);
 
 **결과**
 ![검색](docs/steps/029-02-1.jpg)
+
+### 030-01 답변 페이징과 정렬, 답변 5개씩 페이징
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/030-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/030-01)
+
+**무엇을** 질문 상세 화면의 답변을 한 페이지에 5개씩, 최신순으로 보여 줍니다.
+
+**왜** 도전과제 3-14 "답변 페이징". 답변이 수백 개인 질문에서 `question.answers`를 통째로 읽으면 메모리 부담이 큽니다(14163 13강: "메이저급은 댓글도 페이징"). 답변은 이제 리포지터리에서 페이지 단위로 가져옵니다.
+
+`AnswerRepository.java`
+```java
+Page<Answer> findByQuestion(Question question, Pageable pageable);
+```
+
+`AnswerService.java`
+```java
+public Page<Answer> getList(Question question, int page) {
+    Pageable pageable = PageRequest.of(page, 5, Sort.by(Sort.Order.desc("createDate"), Sort.Order.desc("id")));
+    return answerRepository.findByQuestion(question, pageable);
+}
+```
+
+`question_detail.html`
+```diff
+- <h5 th:text="|${#lists.size(question.answers)}개의 답변이 있습니다.|">
+- <div class="card my-3" th:each="answer : ${question.answers}">
++ <h5 th:text="|${answerPaging.totalElements}개의 답변이 있습니다.|">
++ <div class="card my-3" th:each="answer : ${answerPaging}">
+```
+
+**결과** 답변 7개 → 1페이지 5개, 2페이지 2개.
+![답변 페이징](docs/steps/030-01-1.jpg)
