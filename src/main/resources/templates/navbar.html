@@ -14,8 +14,21 @@
                 </li>
             </ul>
             <ul class="navbar-nav mb-2 mb-lg-0">
-                <li class="nav-item">
+                <!-- sec:authorize: 로그인 상태에 따라 보이는 메뉴가 달라진다. (thymeleaf-extras-springsecurity) -->
+                <li class="nav-item" sec:authorize="isAnonymous()">
+                    <a class="nav-link" th:href="@{/user/login}">로그인</a>
+                </li>
+                <li class="nav-item" sec:authorize="isAnonymous()">
                     <a class="nav-link" th:href="@{/user/signup}">회원가입</a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <span class="nav-link" sec:authentication="name">user1</span>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <!-- 로그아웃은 POST 요청이어야 하므로 링크가 아닌 폼 버튼 -->
+                    <form th:action="@{/user/logout}" method="post">
+                        <button type="submit" class="nav-link">로그아웃</button>
+                    </form>
                 </li>
             </ul>
         </div>

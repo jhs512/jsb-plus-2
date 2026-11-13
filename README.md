@@ -1709,3 +1709,37 @@ public UserDetails loadUserByUsername(String username) {
 **결과** 실패하면 `?error`, 성공하면 `/`로 302 됩니다. 아직 내비게이션 바는 로그인 여부를 모르고 계속 "회원가입"을 보여 줍니다(다음 커밋).
 ![로그인 실패](docs/steps/023-01-1.jpg)
 ![로그인 성공](docs/steps/023-01-2.jpg)
+
+### 023-02 로그인과 로그아웃, 로그인 상태별 메뉴와 POST 로그아웃
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/023-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/023-02)
+
+**무엇을** 내비게이션 바가 로그인 상태에 따라 다른 메뉴를 보여 줍니다. 로그인하지 않았으면 "로그인·회원가입", 로그인했으면 "사용자 이름·로그아웃"입니다. 로그아웃은 POST 요청이어야 해서 폼 버튼으로 만들었습니다.
+
+**왜** 타임리프에서 로그인 정보를 쓰려면 `thymeleaf-extras-springsecurity`가 필요합니다.
+
+`build.gradle.kts`
+```diff
++ implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
+```
+
+`navbar.html`
+```html
+<li sec:authorize="isAnonymous()"><a th:href="@{/user/login}">로그인</a></li>
+<li sec:authorize="isAnonymous()"><a th:href="@{/user/signup}">회원가입</a></li>
+<li sec:authorize="isAuthenticated()"><span sec:authentication="name">user1</span></li>
+<li sec:authorize="isAuthenticated()">
+    <form th:action="@{/user/logout}" method="post">   <!-- 로그아웃은 POST -->
+        <button type="submit" class="nav-link">로그아웃</button>
+    </form>
+</li>
+```
+
+**결과**
+
+| 로그인 전 | 로그인 후 |
+|---|---|
+| ![전](docs/steps/023-02-1.jpg) | ![후](docs/steps/023-02-2.jpg) |
+
+![POST 로그아웃](docs/steps/023-02-3.jpg)
+
+> **확인해 볼 것** 로그아웃 링크를 `<a href="/user/logout">`(GET)으로 만들면 로그아웃이 되지 않습니다. 025-01에서 링크로도 POST를 보낼 수 있게 만듭니다.
