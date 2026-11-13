@@ -1,10 +1,12 @@
 package com.mysite.sbb.domain.question.question.entity;
 
 import com.mysite.sbb.domain.question.answer.entity.Answer;
+import com.mysite.sbb.domain.user.user.entity.SiteUser;
 import com.mysite.sbb.global.jpa.entity.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,12 +14,17 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
+import static jakarta.persistence.FetchType.LAZY;
 import static lombok.AccessLevel.PROTECTED;
 
 @Entity // 이 클래스를 기준으로 question 테이블이 만들어진다.
 @Getter
 @NoArgsConstructor(access = PROTECTED) // JPA가 객체를 만들 때 필요한 기본 생성자 (외부에서는 사용 금지)
 public class Question extends BaseEntity {
+    // 글쓴이. 질문(N) : 회원(1) (교재 3-08)
+    @ManyToOne(fetch = LAZY)
+    private SiteUser author;
+
     @Column(length = 200) // varchar(200)
     private String subject;
 
@@ -32,7 +39,8 @@ public class Question extends BaseEntity {
     private List<Answer> answers = new ArrayList<>();
 
     // @Setter 대신 "만들 때 필요한 값"을 생성자로 받는다. (14168)
-    public Question(String subject, String content) {
+    public Question(SiteUser author, String subject, String content) {
+        this.author = author;
         this.subject = subject;
         this.content = content;
     }
@@ -45,8 +53,8 @@ public class Question extends BaseEntity {
 
     // 답변 생성을 Question에게 맡긴다. answerRepository.save 없이도
     // cascade PERSIST 덕분에 트랜잭션이 끝날 때 자동 INSERT 된다. (14163 21강)
-    public Answer addAnswer(String content) {
-        Answer answer = new Answer(this, content); // 관계의 주인 쪽(question_id)을 채워야 DB에 반영된다.
+    public Answer addAnswer(SiteUser author, String content) {
+        Answer answer = new Answer(this, author, content); // 관계의 주인 쪽(question_id)을 채워야 DB에 반영된다.
         answers.add(answer);                        // 자바 객체 쪽 관계도 함께 맞춰 준다.
 
         return answer;

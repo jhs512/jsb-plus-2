@@ -2,6 +2,7 @@ package com.mysite.sbb.global.initData;
 
 import com.mysite.sbb.domain.question.question.entity.Question;
 import com.mysite.sbb.domain.question.question.repository.QuestionRepository;
+import com.mysite.sbb.domain.user.user.entity.SiteUser;
 import com.mysite.sbb.domain.user.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,14 +37,14 @@ public class BaseInitData {
 
         // 개발/테스트용 계정 (비밀번호 1234)
         userService.create("admin", "admin@test.com", "1234");
-        userService.create("user1", "user1@test.com", "1234");
-        userService.create("user2", "user2@test.com", "1234");
+        SiteUser user1 = userService.create("user1", "user1@test.com", "1234");
+        SiteUser user2 = userService.create("user2", "user2@test.com", "1234");
 
-        Question q1 = new Question("sbb가 무엇인가요?", "sbb에 대해서 알고 싶습니다.");
+        Question q1 = new Question(user1, "sbb가 무엇인가요?", "sbb에 대해서 알고 싶습니다.");
         questionRepository.save(q1);
 
-        Question q2 = new Question("스프링부트 모델 질문입니다.", "id는 자동으로 생성되나요?");
-        q2.addAnswer("네 자동으로 생성됩니다.");
+        Question q2 = new Question(user1, "스프링부트 모델 질문입니다.", "id는 자동으로 생성되나요?");
+        q2.addAnswer(user2, "네 자동으로 생성됩니다.");
         questionRepository.save(q2); // q2를 저장할 때 answers에 있는 답변도 함께 INSERT (cascade PERSIST)
     }
 }

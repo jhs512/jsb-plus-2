@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import com.mysite.sbb.domain.user.user.service.UserService;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import com.mysite.sbb.domain.question.question.service.QuestionService;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,11 +27,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional // 테스트에서 등록한 질문은 롤백
+@WithUserDetails("user1") // 모든 테스트를 user1로 로그인한 상태에서 실행
 class QuestionControllerTest {
     @Autowired
     private MockMvc mvc;
     @Autowired
     private QuestionService questionService;
+    @Autowired
+    private UserService userService;
 
     @Test
     @DisplayName("GET /question/list -> 질문 제목들이 보인다")
@@ -96,7 +102,7 @@ class QuestionControllerTest {
     @Test
     @DisplayName("페이징: 한 페이지에 10개, 최신 글이 먼저")
     void t7() throws Exception {
-        for (int i = 1; i <= 25; i++) questionService.create("페이징 테스트 %02d".formatted(i), "내용");
+        for (int i = 1; i <= 25; i++) questionService.create(userService.getUser("user1"), "페이징 테스트 %02d".formatted(i), "내용");
         // 총 27개 -> 3페이지 (10, 10, 7)
 
         mvc.perform(get("/question/list"))
@@ -105,5 +111,26 @@ class QuestionControllerTest {
 
         mvc.perform(get("/question/list").param("page", "2"))
                 .andExpect(content().string(containsString("sbb가 무엇인가요?"))); // 가장 오래된 글은 마지막 페이지
+    }
+
+    @Test
+    @DisplayName("로그인하지 않으면 질문 등록 폼 대신 로그인 페이지로")
+    @WithAnonymousUser
+    void t8() throws Exception {
+        mvc.perform(get("/question/create"))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/user/login"));
+    }
+
+    @Test
+    @DisplayName("등록한 질문의 글쓴이는 로그인한 사용자")
+    void t9() throws Exception {
+        mvc.perform(post("/question/create").with(csrf())
+                .param("subject", "글쓴이 테스트")
+                .param("content", "내용"));
+
+        org.assertj.core.api.Assertions.assertThat(
+                questionService.getList(0).getContent().get(0).getAuthor().getUsername()
+        ).isEqualTo("user1");
     }
 }

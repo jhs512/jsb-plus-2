@@ -1743,3 +1743,40 @@ public UserDetails loadUserByUsername(String username) {
 ![POST 로그아웃](docs/steps/023-02-3.jpg)
 
 > **확인해 볼 것** 로그아웃 링크를 `<a href="/user/logout">`(GET)으로 만들면 로그아웃이 되지 않습니다. 025-01에서 링크로도 POST를 보낼 수 있게 만듭니다.
+
+### 024-01 글쓴이, 질문·답변에 author 저장과 로그인 필수
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/024-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/024-01)
+
+**무엇을** 질문과 답변에 글쓴이(`author`)를 저장합니다. 질문·답변 등록은 로그인해야만 할 수 있습니다.
+
+**왜** 누가 쓴 글인지 기록하고, 로그인하지 않은 사용자는 글을 쓰지 못하게 합니다(교재 3-08).
+
+`Question.java`, `Answer.java`
+```diff
++ @ManyToOne(fetch = LAZY)
++ private SiteUser author;   // 질문(N) : 회원(1)
+
+- public Question(String subject, String content) {
++ public Question(SiteUser author, String subject, String content) {
+```
+
+`SecurityConfig.java`
+```diff
+  @Configuration
++ @EnableMethodSecurity   // @PreAuthorize 동작
+```
+
+`QuestionController.java`
+```diff
++ @PreAuthorize("isAuthenticated()")   // 로그인 안 했으면 로그인 페이지로
+  @PostMapping("/create")
+  public String create(@ModelAttribute("form") @Valid QuestionForm form, BindingResult bindingResult,
++                      Principal principal) {   // 현재 로그인한 사용자
+      // ...
+-     questionService.create(form.subject(), form.content());
++     questionService.create(userService.getUser(principal.getName()), form.subject(), form.content());
+```
+
+**결과** 로그인하지 않고 등록 화면에 가면 로그인 화면으로 302 됩니다. 로그인하고 등록하면 `AUTHOR_ID`에 로그인한 회원이 연결됩니다.
+![비로그인 302](docs/steps/024-01-1.jpg)
+![AUTHOR_ID](docs/steps/024-01-2.jpg)

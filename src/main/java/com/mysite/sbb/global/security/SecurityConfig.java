@@ -2,6 +2,7 @@ package com.mysite.sbb.global.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -12,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 // 설정이 없으면 기본값: 1) 인증 안 된 요청은 모두 거절(로그인 페이지로) 2) POST/PUT/DELETE는 CSRF 토큰 검사 (14168 46강)
 // 교재의 AntPathRequestMatcher는 Spring Security 7(Boot 4)에서 제거되어 문자열 패턴을 사용한다.
 @Configuration
+@EnableMethodSecurity // 컨트롤러 메서드의 @PreAuthorize 동작
 public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {

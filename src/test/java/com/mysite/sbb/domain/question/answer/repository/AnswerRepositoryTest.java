@@ -26,7 +26,7 @@ class AnswerRepositoryTest {
     void t1() {
         Question q2 = questionRepository.findById(2).get();
 
-        Answer answer = new Answer(q2, "답변 by answerRepository");
+        Answer answer = new Answer(q2, q2.getAuthor(), "답변 by answerRepository");
         answerRepository.save(answer);
 
         assertThat(answer.getId()).isGreaterThan(0); // save 하자마자 INSERT -> id 생성
@@ -38,7 +38,7 @@ class AnswerRepositoryTest {
     void t2() {
         Question q2 = questionRepository.findById(2).get();
 
-        Answer answer = q2.addAnswer("답변 by addAnswer");
+        Answer answer = q2.addAnswer(q2.getAuthor(), "답변 by addAnswer");
 
         // 아직 INSERT 전이라 id가 없다. 트랜잭션이 끝나거나 flush 할 때 INSERT 된다.
         assertThat(answer.getId()).isEqualTo(0);
