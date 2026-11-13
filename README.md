@@ -133,3 +133,42 @@ mvc.perform(get("/hello"))
 ![GET /hello 200](docs/steps/002-02-1.jpg)
 
 > **확인해 볼 것** 문자열 대신 객체를 반환하면 어떻게 될까요? 스프링이 자동으로 JSON으로 바꿉니다(14168 29강).
+
+### 003-01 DB 설정, H2·JPA 추가와 dev/test 프로파일 분리
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/003-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/003-01)
+
+**무엇을** H2 데이터베이스와 Spring Data JPA를 추가하고, 설정을 **dev(파일 DB)**와 **test(메모리 DB)** 프로파일로 나눴습니다.
+
+**왜** 교재는 DB 하나로 개발과 테스트를 함께 합니다. 그러면 테스트가 개발 데이터를 계속 쌓거나 지웁니다. 14163 5강처럼 둘을 분리합니다.
+
+`build.gradle.kts`
+```diff
+  implementation("org.springframework.boot:spring-boot-starter-webmvc")
++ implementation("org.springframework.boot:spring-boot-starter-data-jpa")
++ implementation("org.springframework.boot:spring-boot-h2console")
++ runtimeOnly("com.h2database:h2")
+```
+
+`application-dev.yaml` / `application-test.yaml`
+```yaml
+# dev: 재시작해도 데이터가 남는 파일 DB
+url: jdbc:h2:./db_dev
+# test: 테스트가 끝나면 사라지는 메모리 DB
+url: jdbc:h2:mem:db_test
+```
+
+`application.yaml`
+```yaml
+spring:
+  profiles:
+    active: dev   # 기본은 dev, 테스트 클래스는 @ActiveProfiles("test")
+  jpa:
+    hibernate:
+      ddl-auto: update   # 엔티티를 보고 테이블을 자동 생성/수정
+```
+
+**결과** `/h2-console`에 접속됩니다. 아직 엔티티가 없어서 테이블은 없습니다.
+![H2 콘솔](docs/steps/003-01-1.jpg)
+
+> **교재와 다른 점** DB 하나(`~/local`) → dev/test 분리. 개발 DB 파일(`db_dev.mv.db`)은 `.gitignore`에 추가했습니다.
+> **확인해 볼 것** 앱을 한 번 실행하면 프로젝트 폴더에 `db_dev.mv.db` 파일이 생깁니다.

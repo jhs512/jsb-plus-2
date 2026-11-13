@@ -38,3 +38,7 @@ bin/
 
 ### VS Code ###
 .vscode/
+
+### H2 파일 DB
+db_dev.mv.db
+db_dev.trace.db

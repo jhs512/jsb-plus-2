@@ -1,0 +1,9 @@
+spring:
+  h2:
+    console:
+      enabled: true # http://localhost:8080/h2-console
+  datasource:
+    url: jdbc:h2:./db_dev # 프로젝트 폴더의 파일 DB (재시작해도 데이터 유지)
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver

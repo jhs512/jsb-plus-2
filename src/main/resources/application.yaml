@@ -4,3 +4,8 @@ spring:
   output:
     ansi:
       enabled: always
+  profiles:
+    active: dev # 기본은 개발(dev) 프로파일, 테스트는 @ActiveProfiles("test")로 전환
+  jpa:
+    hibernate:
+      ddl-auto: update # 엔티티 구조에 맞춰 테이블 자동 생성/수정
