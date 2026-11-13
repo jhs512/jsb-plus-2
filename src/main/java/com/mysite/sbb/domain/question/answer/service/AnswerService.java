@@ -23,8 +23,12 @@ public class AnswerService {
         return question.addAnswer(author, content);
     }
 
-    // 답변 페이징 (도전과제 3-14): 5개씩, 최신순
-    public Page<Answer> getList(Question question, int page) {
+    // 답변 페이징과 정렬 (도전과제 3-14). sort: latest(최신순, 기본) | vote(추천순)
+    public Page<Answer> getList(Question question, int page, String sort) {
+        if ("vote".equals(sort)) {
+            return answerRepository.findByQuestionOrderByVoteCount(question, PageRequest.of(page, 5));
+        }
+
         Pageable pageable = PageRequest.of(page, 5, Sort.by(Sort.Order.desc("createDate"), Sort.Order.desc("id")));
         return answerRepository.findByQuestion(question, pageable);
     }

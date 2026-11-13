@@ -2351,3 +2351,35 @@ public Page<Answer> getList(Question question, int page) {
 
 **결과** 답변 7개 → 1페이지 5개, 2페이지 2개.
 ![답변 페이징](docs/steps/030-01-1.jpg)
+
+### 030-02 답변 페이징과 정렬, 최신순/추천순 정렬
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/030-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/030-02)
+
+**무엇을** 답변을 **최신순 / 추천순**으로 정렬할 수 있게 했습니다. 정렬은 상세 화면의 `select`로 고릅니다.
+
+**왜** 도전과제 3-14 "답변 정렬". 추천 수는 답변 테이블의 컬럼이 아니라 **중간 테이블(`answer_voters`)의 행 개수**입니다. 그래서 `Sort`로는 정렬할 수 없고, JPQL의 `size()`를 씁니다.
+
+`AnswerRepository.java`
+```java
+@Query(value = """
+        select a from Answer a
+        where a.question = :question
+        order by size(a.voters) desc, a.createDate desc, a.id desc
+        """,
+        countQuery = "select count(a) from Answer a where a.question = :question")
+Page<Answer> findByQuestionOrderByVoteCount(@Param("question") Question question, Pageable pageable);
+```
+
+`question_detail.html`
+```html
+<!-- select[value]: 렌더링할 때 현재 값을 선택하도록 global.js 가 처리 (14168 42강) -->
+<form method="get">
+    <select name="answerSort" th:value="${answerSort}" onchange="this.form.submit();">
+        <option value="latest">최신순</option>
+        <option value="vote">추천순</option>
+    </select>
+</form>
+```
+
+**결과** 추천순으로 바꾸면, 가장 오래된 답변이지만 추천 2표를 받은 답변이 맨 위로 올라옵니다. `select`도 "추천순"이 선택된 상태로 그려집니다.
+![추천순](docs/steps/030-02-1.jpg)

@@ -27,7 +27,7 @@ class AnswerServiceTest {
     private UserService userService;
 
     @Test
-    @DisplayName("답변 페이징: 5개씩, 최신순")
+    @DisplayName("답변 페이징(5개씩)과 최신순/추천순 정렬")
     void t1() {
         Question q1 = questionRepository.findById(1).get();
         SiteUser user1 = userService.getUser("user1");
@@ -36,12 +36,21 @@ class AnswerServiceTest {
         for (int i = 1; i <= 7; i++) q1.addAnswer(user1, "답변 %d".formatted(i));
         answerService.flush();
 
+        // 답변 3에 2표, 답변 5에 1표
+        Answer a3 = q1.getAnswers().get(2);
+        Answer a5 = q1.getAnswers().get(4);
+        a3.vote(user1);
+        a3.vote(user2);
+        a5.vote(user1);
+        answerService.flush();
 
-        Page<Answer> latest = answerService.getList(q1, 0);
+        Page<Answer> latest = answerService.getList(q1, 0, "latest");
         assertThat(latest.getTotalElements()).isEqualTo(7);
         assertThat(latest.getTotalPages()).isEqualTo(2);
         assertThat(latest.getContent()).hasSize(5);
         assertThat(latest.getContent().get(0).getContent()).isEqualTo("답변 7");
 
+        Page<Answer> vote = answerService.getList(q1, 0, "vote");
+        assertThat(vote.getContent()).extracting(Answer::getContent).startsWith("답변 3", "답변 5");
     }
 }

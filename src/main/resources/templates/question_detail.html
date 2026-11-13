@@ -45,6 +45,14 @@
     <!-- question.answers: OneToMany 필드라 answerRepository 없이 바로 꺼낼 수 있다. (14163 9강) -->
     <div class="d-flex justify-content-between align-items-center border-bottom my-3 py-2">
         <h5 class="m-0" th:text="|${answerPaging.totalElements}개의 답변이 있습니다.|">0개의 답변이 있습니다.</h5>
+        <!-- 정렬 선택: select[value]는 global.js가 현재 값을 선택해 준다. (14168 42강) -->
+        <form method="get" class="d-flex gap-2">
+            <select name="answerSort" th:value="${answerSort}" class="form-select form-select-sm"
+                    onchange="this.form.submit();">
+                <option value="latest">최신순</option>
+                <option value="vote">추천순</option>
+            </select>
+        </form>
     </div>
     <!-- 답변 반복 -->
     <div class="card my-3" th:each="answer : ${answerPaging}">
@@ -86,16 +94,16 @@
         <ul class="pagination justify-content-center">
             <li class="page-item" th:classappend="${!answerPaging.hasPrevious} ? 'disabled'">
                 <a class="page-link"
-                   th:href="@{|/question/detail/${question.id}|(answerPage=${answerPaging.number - 1})}">이전</a>
+                   th:href="@{|/question/detail/${question.id}|(answerPage=${answerPaging.number - 1}, answerSort=${answerSort})}">이전</a>
             </li>
             <li th:each="page : ${#numbers.sequence(0, answerPaging.totalPages - 1)}"
                 th:classappend="${page == answerPaging.number} ? 'active'" class="page-item">
                 <a class="page-link" th:text="${page + 1}"
-                   th:href="@{|/question/detail/${question.id}|(answerPage=${page})}">1</a>
+                   th:href="@{|/question/detail/${question.id}|(answerPage=${page}, answerSort=${answerSort})}">1</a>
             </li>
             <li class="page-item" th:classappend="${!answerPaging.hasNext} ? 'disabled'">
                 <a class="page-link"
-                   th:href="@{|/question/detail/${question.id}|(answerPage=${answerPaging.number + 1})}">다음</a>
+                   th:href="@{|/question/detail/${question.id}|(answerPage=${answerPaging.number + 1}, answerSort=${answerSort})}">다음</a>
             </li>
         </ul>
     </nav>

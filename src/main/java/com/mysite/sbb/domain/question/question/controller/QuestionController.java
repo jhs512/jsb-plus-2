@@ -57,12 +57,14 @@ public class QuestionController {
             Model model,
             @PathVariable int id,
             @ModelAttribute("answerForm") AnswerForm answerForm, // 답변 폼(th:object)에 쓸 빈 객체
-            @RequestParam(defaultValue = "0") int answerPage
+            @RequestParam(defaultValue = "0") int answerPage,
+            @RequestParam(defaultValue = "latest") String answerSort
     ) {
         Question question = questionService.getQuestion(id);
         model.addAttribute("question", question);
         // 답변은 question.answers 전체 대신 페이지 단위로 (도전과제: 답변 페이징과 정렬)
-        model.addAttribute("answerPaging", answerService.getList(question, answerPage));
+        model.addAttribute("answerPaging", answerService.getList(question, answerPage, answerSort));
+        model.addAttribute("answerSort", answerSort);
 
         return "question_detail";
     }
