@@ -14,7 +14,8 @@
         <tbody>
         <!-- paging은 Page 객체. 현재 페이지의 질문들은 paging의 content(=iterator)로 순회된다. -->
         <tr th:each="question, loop : ${paging}">
-            <td th:text="${loop.count}">1</td>
+            <!-- 번호 = 전체 개수 - (현재 페이지 * 페이지 크기) - 현재 페이지 안에서의 인덱스 (교재 3-03) -->
+            <td th:text="${paging.totalElements - (paging.number * paging.size) - loop.index}">1</td>
             <td>
                 <!-- @{...}: URL 생성, |...|: 문자열 안에 변수 치환 (14163 35강) -->
                 <a th:href="@{|/question/detail/${question.id}|}" th:text="${question.subject}">제목</a>

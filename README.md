@@ -1393,3 +1393,23 @@ public class DevInitData {
 ![COUNT 쿼리](docs/steps/018-02-2.jpg)
 
 > **확인해 볼 것** 번호 열이 페이지마다 1부터 다시 시작합니다. 다음 커밋에서 전체 기준 번호로 바꿉니다.
+
+### 019-01 게시물 번호, 전체 개수 기준 역순 번호
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/019-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/019-01)
+
+**무엇을** 목록의 번호를 페이지마다 1부터 다시 세지 않고, **전체 개수 기준 역순**으로 바꿨습니다.
+
+**왜** `loop.count`는 페이지마다 1부터 시작합니다. 최신 글이 가장 큰 번호를 갖도록 계산합니다(교재 3-03).
+
+`question_list.html`
+```diff
+- <td th:text="${loop.count}">1</td>
++ <!-- 번호 = 전체 개수 - (현재 페이지 × 페이지 크기) - 페이지 안에서의 인덱스 -->
++ <td th:text="${paging.totalElements - (paging.number * paging.size) - loop.index}">1</td>
+```
+
+**결과** 1페이지 첫 줄은 302, 마지막 페이지 마지막 줄은 1입니다.
+
+| 1페이지 | 마지막 페이지 |
+|---|---|
+| ![1페이지](docs/steps/019-01-1.jpg) | ![마지막](docs/steps/019-01-2.jpg) |
