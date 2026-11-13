@@ -7,7 +7,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -34,5 +36,21 @@ public class QuestionController {
         model.addAttribute("question", question);
 
         return "question_detail";
+    }
+
+    // GET: 폼을 보여준다. POST: 폼 데이터를 처리한다. URL이 같아도 메서드로 구분된다. (14168 26강)
+    @GetMapping("/create")
+    public String showCreate() {
+        return "question_form";
+    }
+
+    @PostMapping("/create")
+    public String create(
+            @RequestParam("subject") String subject,
+            @RequestParam("content") String content
+    ) {
+        questionService.create(subject, content);
+
+        return "redirect:/question/list";
     }
 }

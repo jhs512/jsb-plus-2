@@ -1088,3 +1088,41 @@ input[type=submit] { margin-top: 10px; }
 
 **결과** 화면은 같지만, 응답 HTML이 레이아웃으로 감싸지고 탭 제목이 "질문 목록 | SBB"가 됩니다.
 ![레이아웃](docs/steps/015-01-1.jpg)
+
+### 016-01 질문 등록, 등록 폼과 저장
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/016-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/016-01)
+
+**무엇을** 질문 등록 폼(`GET /question/create`)과 저장 처리(`POST /question/create`)를 만들었습니다.
+
+**왜** 교재 2-16. 같은 URL을 **GET은 폼 보여주기, POST는 처리**로 구분합니다(14168 26강). 폼의 `action`을 생략하면 현재 URL로 전송됩니다.
+
+`QuestionController.java`
+```java
+@GetMapping("/create")
+public String showCreate() {
+    return "question_form";
+}
+
+@PostMapping("/create")
+public String create(@RequestParam("subject") String subject,
+                     @RequestParam("content") String content) {
+    questionService.create(subject, content);
+    return "redirect:/question/list";
+}
+```
+
+`question_form.html` (새 파일, 핵심)
+```html
+<!-- action 생략 → 현재 URL(/question/create)로 POST -->
+<form method="post">
+    <label class="form-label">제목 <input type="text" name="subject" class="form-control"></label>
+    <label class="form-label w-100">내용 <textarea name="content" class="form-control" rows="10"></textarea></label>
+    <input type="submit" value="저장하기" class="btn btn-primary my-2">
+</form>
+```
+
+**결과**
+![질문 등록 버튼](docs/steps/016-01-1.jpg)
+![등록 후 목록](docs/steps/016-01-2.jpg)
+
+> **확인해 볼 것** 지금은 제목을 비워도 저장됩니다. 다음 커밋에서 검증을 넣습니다.

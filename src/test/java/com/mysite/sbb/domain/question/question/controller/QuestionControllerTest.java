@@ -7,15 +7,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional // 테스트에서 등록한 질문은 롤백
 class QuestionControllerTest {
     @Autowired
     private MockMvc mvc;
@@ -46,5 +51,26 @@ class QuestionControllerTest {
     void t3() throws Exception {
         mvc.perform(get("/question/detail/999"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("GET /question/create -> 질문 등록 폼")
+    void t4() throws Exception {
+        mvc.perform(get("/question/create"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("question_form"));
+    }
+
+    @Test
+    @DisplayName("POST /question/create -> 저장 후 목록으로 리다이렉트")
+    void t5() throws Exception {
+        mvc.perform(post("/question/create")
+                        .param("subject", "새 질문 제목")
+                        .param("content", "새 질문 내용"))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/question/list"));
+
+        mvc.perform(get("/question/list"))
+                .andExpect(content().string(containsString("새 질문 제목")));
     }
 }

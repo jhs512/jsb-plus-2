@@ -23,4 +23,8 @@ public class QuestionService {
         return questionRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("question not found"));
     }
+
+    public Question create(String subject, String content) {
+        return questionRepository.save(new Question(subject, content));
+    }
 }
