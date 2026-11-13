@@ -2122,3 +2122,32 @@ public String vote(@PathVariable int id, Principal principal) {
 
 **결과**
 ![앵커 이동](docs/steps/027-01-1.jpg)
+
+### 028-01 마크다운, commonmark 변환 서비스
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/028-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/028-01)
+
+**무엇을** 마크다운 문자열을 HTML로 바꾸는 `MarkdownService`를 만들었습니다(commonmark 라이브러리).
+
+**왜** 질문·답변 본문에 제목, 목록, 굵게 같은 서식을 쓸 수 있게 합니다(교재 3-12의 `CommonUtil`). 화면에 붙이기 전에, 변환 자체를 스프링 없이 빠른 단위 테스트로 확인합니다.
+
+`build.gradle.kts`
+```diff
++ implementation("org.commonmark:commonmark:0.24.0")   // Boot가 버전을 관리하지 않아서 직접 지정
+```
+
+`MarkdownService.java` (새 파일)
+```java
+@Component("markdownService")
+public class MarkdownService {
+    private final Parser parser = Parser.builder().build();
+    private final HtmlRenderer renderer = HtmlRenderer.builder().build();
+
+    public String render(String markdown) {
+        if (markdown == null) return "";
+        return renderer.render(parser.parse(markdown));
+    }
+}
+```
+
+**결과**
+![테스트](docs/steps/028-01-1.jpg)
