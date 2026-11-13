@@ -1,13 +1,17 @@
 package com.mysite.sbb.question;
 
+import com.mysite.sbb.answer.Answer;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static jakarta.persistence.GenerationType.IDENTITY;
 
@@ -26,4 +30,8 @@ public class Question {
     private String content;
 
     private LocalDateTime createDate; // 컬럼명은 create_date (카멜케이스 -> 스네이크케이스)
+
+    // [실험] mappedBy 없이 OneToMany만 선언하면?
+    @OneToMany
+    private List<Answer> answers = new ArrayList<>();
 }
