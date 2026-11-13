@@ -1590,3 +1590,29 @@ public interface UserRepository extends JpaRepository<SiteUser, Integer> {
 
 **결과**
 ![SITE_USER 테이블](docs/steps/022-01-1.jpg)
+
+### 022-02 회원가입, BCrypt 암호화와 UserService
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/022-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/022-02)
+
+**무엇을** 비밀번호를 BCrypt로 암호화해서 저장하는 `UserService`를 만들었습니다.
+
+**왜** 비밀번호 원문을 저장하면 DB가 유출됐을 때 그대로 노출됩니다(교재 3-06). BCrypt는 무작위 값(salt)을 섞기 때문에 같은 비밀번호도 매번 다른 해시가 됩니다. 원래 비밀번호는 해시에서 되돌릴 수 없고, `matches()`로 "맞는지"만 확인할 수 있습니다.
+
+`SecurityConfig.java`
+```diff
++ @Bean
++ public PasswordEncoder passwordEncoder() {
++     return new BCryptPasswordEncoder();
++ }
+```
+
+`UserService.java` (새 파일)
+```java
+public SiteUser create(String username, String email, String password) {
+    SiteUser user = new SiteUser(username, passwordEncoder.encode(password), email);
+    return userRepository.save(user);
+}
+```
+
+**결과**
+![테스트](docs/steps/022-02-1.jpg)

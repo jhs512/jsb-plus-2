@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 // 시큐리티는 컨트롤러보다 앞단(필터)에서 동작한다.
@@ -30,5 +32,11 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    // 비밀번호는 원문 대신 BCrypt 해시로 저장한다. 같은 비밀번호도 매번 다른 값(salt)으로 저장된다.
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
