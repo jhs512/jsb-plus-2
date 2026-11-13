@@ -1,8 +1,19 @@
 <h1>질문 목록</h1>
-<ul>
-    <!-- th:each: questionList의 요소를 하나씩 question 변수에 담아 li를 반복 생성 -->
-    <li th:each="question : ${questionList}">
-        <!-- th:text: 태그 안의 내용을 값으로 교체 (HTML 이스케이프 됨) -->
-        <span th:text="|${question.id} : ${question.subject}|">1 : 제목</span>
-    </li>
-</ul>
+<table>
+    <thead>
+    <tr>
+        <th>번호</th>
+        <th>제목</th>
+        <th>작성일시</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- th:each: questionList의 요소를 하나씩 question 변수에 담아 tr을 반복 생성 -->
+    <tr th:each="question : ${questionList}">
+        <td th:text="${question.id}">1</td>
+        <td th:text="${question.subject}">제목</td>
+        <!-- #temporals: 날짜 포맷 유틸리티 -->
+        <td th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm')}">2026-01-01 00:00</td>
+    </tr>
+    </tbody>
+</table>

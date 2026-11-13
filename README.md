@@ -665,3 +665,32 @@ public String list() {
 
 **결과** 같은 화면이 템플릿으로 만들어집니다.
 ![타임리프 목록](docs/steps/007-02-1.jpg)
+
+### 007-03 질문 목록, 표로 출력하고 작성일시 표시
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/007-03) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/007-03)
+
+**무엇을** 목록을 표(`table`)로 바꾸고 작성일시를 출력했습니다.
+
+**왜** 목록 데이터는 표가 읽기 쉽습니다(교재 2-07, 14163 32강). 날짜는 `#temporals.format`으로 원하는 형식으로 바꿉니다.
+
+`question_list.html`
+```diff
+- <ul>
+-     <li th:each="question : ${questionList}">
+-         <span th:text="|${question.id} : ${question.subject}|">1 : 제목</span>
+-     </li>
+- </ul>
++ <table>
++     <thead><tr><th>번호</th><th>제목</th><th>작성일시</th></tr></thead>
++     <tbody>
++     <tr th:each="question : ${questionList}">
++         <td th:text="${question.id}">1</td>
++         <td th:text="${question.subject}">제목</td>
++         <td th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm')}">2026-01-01 00:00</td>
++     </tr>
++     </tbody>
++ </table>
+```
+
+**결과**
+![표 목록](docs/steps/007-03-1.jpg)
