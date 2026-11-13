@@ -1223,3 +1223,35 @@ public String create(@ModelAttribute("form") @Valid QuestionForm form,
 ![콘솔 에러](docs/steps/016-04-1.jpg)
 
 > **왜 실패할까?** 이 스크립트는 폼 맨 위(에러 목록 바로 아래)에서 실행됩니다. 그 순간 브라우저는 아직 아래쪽 `<textarea name="content">`를 읽지 않았습니다. 그래서 `lastForm["content"]`가 `undefined`입니다. `setTimeout`으로 조금 늦춰도, 그때까지 문서를 다 읽었다는 보장이 없습니다.
+
+### 016-05 질문 등록, 첫 에러 필드 focus 개선(currentScript + DOMContentLoaded)
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/016-05) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/016-05)
+
+**무엇을** 포커스 스크립트를 고쳤습니다. 스크립트가 들어 있는 폼을 `document.currentScript.closest('form')`으로 정확히 찾고, 문서를 다 읽은 뒤(`DOMContentLoaded`)에 focus 합니다.
+
+**왜** 앞 실험에서 본 것처럼, 폼 맨 위에서 실행되는 시점에는 아래쪽 입력칸이 아직 없습니다. "마지막 form"으로 추측하는 대신 자기가 속한 폼을 직접 찾고, 입력칸이 다 만들어진 다음에 실행되도록 순서를 보장합니다(14168 25강 개선).
+
+`form_errors.html`
+```diff
+- const forms = document.querySelectorAll('form');
+- const lastForm = forms[forms.length - 1];
+- const errorFieldName = lastForm.querySelector('ul > li')?.dataset?.errorFieldName || '';
+- if (errorFieldName.length > 0) {
+-     setTimeout(() => lastForm[errorFieldName].focus());
+- }
++ (() => {
++     const form = document.currentScript.closest('form');   // 이 스크립트가 들어 있는 form
++     const errorFieldName = form.querySelector('ul > li')?.dataset?.errorFieldName || '';
++     if (errorFieldName.length === 0) return;
++
++     document.addEventListener('DOMContentLoaded', () => form[errorFieldName]?.focus());
++ })();
+```
+
+**결과**
+
+| 변경 전 (016-04) | 변경 후 |
+|---|---|
+| ![전](docs/steps/016-04-1.jpg) | ![후](docs/steps/016-05-1.jpg) |
+
+> **교재와 다른 점** 교재에는 없는 기능입니다. 강사 방식을 이 구조에 맞게 고쳤습니다. 1차 구현에서는 고친 결과만 남겼는데, 이번에는 실패(016-04)와 개선(016-05)을 나눠 남겼습니다.

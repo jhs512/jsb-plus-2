@@ -14,12 +14,14 @@
         ></li>
     </ul>
     <script>
-        // 강사 방식(14168 25강): 현재까지 나온 마지막 form을 찾아 첫 번째 에러 필드에 focus
-        const forms = document.querySelectorAll('form');
-        const lastForm = forms[forms.length - 1];
-        const errorFieldName = lastForm.querySelector('ul > li')?.dataset?.errorFieldName || '';
-        if (errorFieldName.length > 0) {
-            setTimeout(() => lastForm[errorFieldName].focus());
-        }
+        // 이 스크립트가 들어 있는 form을 정확히 찾고(document.currentScript),
+        // 문서를 다 읽은 뒤(DOMContentLoaded)에 첫 번째 에러 필드로 focus 한다.
+        (() => {
+            const form = document.currentScript.closest('form');
+            const errorFieldName = form.querySelector('ul > li')?.dataset?.errorFieldName || '';
+            if (errorFieldName.length === 0) return;
+
+            document.addEventListener('DOMContentLoaded', () => form[errorFieldName]?.focus());
+        })();
     </script>
 </th:block>
