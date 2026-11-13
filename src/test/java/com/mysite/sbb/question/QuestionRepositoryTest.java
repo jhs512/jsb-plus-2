@@ -1,5 +1,6 @@
 package com.mysite.sbb.question;
 
+import org.hibernate.LazyInitializationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 // test 프로파일(메모리 DB) + TestInitData가 만든 샘플 데이터(질문 2개, 답변 1개)를 기준으로 테스트한다.
 @ActiveProfiles("test")
@@ -70,5 +72,16 @@ class QuestionRepositoryTest {
     void t7() {
         List<Question> questions = questionRepository.findByIdLessThanOrderByIdDesc(3);
         assertThat(questions).extracting(Question::getId).containsExactly(2, 1);
+    }
+
+    @Test
+    @DisplayName("[실험] 트랜잭션 밖에서 LAZY 컬렉션에 접근하면 LazyInitializationException")
+    void t8() {
+        // findById가 끝나는 순간 DB 연결(영속성 컨텍스트)이 닫힌다.
+        Question q2 = questionRepository.findById(2).get();
+
+        // answers는 LAZY라 아직 SELECT 되지 않았고, 이제는 가져올 연결이 없다.
+        assertThatThrownBy(() -> q2.getAnswers().size())
+                .isInstanceOf(LazyInitializationException.class);
     }
 }

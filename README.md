@@ -474,3 +474,24 @@ class QuestionRepositoryTest {
 **결과**
 ![테스트 결과](docs/steps/005-03-1.jpg)
 ![메서드 이름과 SQL](docs/steps/005-03-2.jpg)
+
+### 005-04 리포지터리, [실험] 트랜잭션 밖 LAZY 로딩은 실패한다
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/005-04) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/005-04)
+
+**무엇을** 트랜잭션 밖에서 LAZY 컬렉션(`question.getAnswers()`)을 읽으면 `LazyInitializationException`이 나는 것을 테스트로 남겼습니다. **(실험 커밋)**
+
+**왜** LAZY는 "실제로 쓸 때 SELECT"입니다. 그런데 그 순간에 DB 연결(영속성 컨텍스트)이 이미 닫혀 있으면 가져올 수 없습니다(14163 25강). 일부러 실패하는 상황을 만들어 보고, 다음 단계에서 해결합니다.
+
+`QuestionRepositoryTest.java`
+```java
+@Test
+void t8() {
+    Question q2 = questionRepository.findById(2).get();   // 여기서 연결이 닫힌다
+
+    assertThatThrownBy(() -> q2.getAnswers().size())       // 이제야 answers를 읽으려 함
+            .isInstanceOf(LazyInitializationException.class);
+}
+```
+
+**결과** 예외가 나는 것이 확인되어 테스트는 통과합니다.
+![테스트 결과](docs/steps/005-04-1.jpg)
