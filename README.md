@@ -624,3 +624,44 @@ public String list() {
 ![질문 목록](docs/steps/007-01-1.jpg)
 
 > **확인해 볼 것** 제목에 `<b>`나 `<script>`가 들어 있으면 어떻게 될까요? 문자열을 그대로 이어 붙였기 때문에 HTML로 해석됩니다. 타임리프의 `th:text`는 이를 자동으로 이스케이프합니다.
+
+### 007-02 질문 목록, 타임리프와 Model
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/007-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/007-02)
+
+**무엇을** 타임리프를 도입했습니다. 컨트롤러는 데이터만 `Model`에 담고, HTML은 `question_list.html` 템플릿이 만듭니다.
+
+**왜** HTML은 템플릿이, 데이터 준비는 컨트롤러가 맡도록 역할을 나눕니다(교재 2-07, 14163 28·30·31강). 화면은 이전과 같지만 **만드는 방식**이 바뀝니다.
+
+`QuestionController.java`
+```diff
+  @GetMapping("/question/list")
+- @ResponseBody
+- public String list() {
+-     ...
+-     return "<h1>질문 목록</h1>\n<ul>\n" + lis + "\n</ul>";
++ public String list(Model model) {
++     List<Question> questionList = questionRepository.findAll();
++     model.addAttribute("questionList", questionList);   // 템플릿에서 ${questionList}
++     return "question_list";   // @ResponseBody가 없으니 템플릿 이름
+  }
+```
+
+`templates/question_list.html` (새 파일)
+```html
+<h1>질문 목록</h1>
+<ul>
+    <li th:each="question : ${questionList}">
+        <span th:text="|${question.id} : ${question.subject}|">1 : 제목</span>
+    </li>
+</ul>
+```
+
+`application-dev.yaml`
+```diff
++ thymeleaf:
++   cache: false   # 개발 중에는 템플릿 수정이 바로 반영되도록 (14163 29강)
++   prefix: file:src/main/resources/templates/   # 빌드 없이 소스 폴더의 템플릿을 읽음 (14168)
+```
+
+**결과** 같은 화면이 템플릿으로 만들어집니다.
+![타임리프 목록](docs/steps/007-02-1.jpg)

@@ -1,4 +1,7 @@
 spring:
+  thymeleaf:
+    cache: false # 개발 중에는 템플릿 수정이 바로 반영되도록 (운영에서는 켜야 함, 14163 29강)
+    prefix: file:src/main/resources/templates/ # 빌드 없이 소스 폴더의 템플릿을 바로 읽음 (14168)
   h2:
     console:
       enabled: true # http://localhost:8080/h2-console
