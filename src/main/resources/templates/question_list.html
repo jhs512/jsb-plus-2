@@ -19,6 +19,10 @@
             <td>
                 <!-- @{...}: URL 생성, |...|: 문자열 안에 변수 치환 (14163 35강) -->
                 <a th:href="@{|/question/detail/${question.id}|}" th:text="${question.subject}">제목</a>
+                <!-- 답변이 있을 때만 개수 표시 (교재 3-04) -->
+                <span class="text-danger small ms-2"
+                      th:if="${#lists.size(question.answers) > 0}"
+                      th:text="${#lists.size(question.answers)}">2</span>
             </td>
             <td th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm')}">2026-01-01 00:00</td>
         </tr>

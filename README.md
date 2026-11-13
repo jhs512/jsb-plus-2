@@ -1413,3 +1413,24 @@ public class DevInitData {
 | 1페이지 | 마지막 페이지 |
 |---|---|
 | ![1페이지](docs/steps/019-01-1.jpg) | ![마지막](docs/steps/019-01-2.jpg) |
+
+### 020-01 답변 개수, 목록에 답변 개수 표시
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/020-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/020-01)
+
+**무엇을** 목록에서 질문 제목 옆에 답변 개수를 보여 줍니다(답변이 있을 때만).
+
+**왜** 답변이 달린 질문을 목록에서 바로 알아볼 수 있습니다(교재 3-04).
+
+`question_list.html`
+```diff
+  <a th:href="@{|/question/detail/${question.id}|}" th:text="${question.subject}">제목</a>
++ <span class="text-danger small ms-2"
++       th:if="${#lists.size(question.answers) > 0}"
++       th:text="${#lists.size(question.answers)}">2</span>
+```
+
+**결과** 배지는 잘 나오지만, SQL 로그를 보면 문제가 있습니다. `question.answers`는 LAZY라서, 목록의 질문 10개마다 answer 조회가 **한 번씩 따로** 실행됩니다. 질문 조회 1번 + 답변 조회 N번, 이른바 **N+1 문제**입니다.
+![답변 개수 배지](docs/steps/020-01-1.jpg)
+![N+1 로그](docs/steps/020-01-2.jpg)
+
+> **확인해 볼 것** 한 페이지에 100개를 보여 주면 쿼리가 101번 실행됩니다. 다음 커밋에서 줄입니다.
