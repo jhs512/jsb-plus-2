@@ -420,3 +420,35 @@ public class TestInitData {
 ![트랜잭션 로그](docs/steps/005-01-2.jpg)
 
 > **확인해 볼 것** `self.work1()`을 `this.work1()`로 바꾸면 로그에서 `Getting transaction for [...TestInitData...work1]` 줄이 사라집니다. `@Transactional`은 프록시를 거쳐 호출될 때만 동작하기 때문입니다.
+
+### 005-02 리포지터리, findAll과 findById 테스트
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/005-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/005-02)
+
+**무엇을** `QuestionRepository`의 기본 메서드 `findAll`, `findById`를 테스트로 확인했습니다.
+
+**왜** 리포지터리가 제대로 동작하는지, 샘플 데이터가 테스트용 메모리 DB에도 들어가는지를 화면 없이 반복해서 확인하기 위해서입니다(교재 2-05, 14163 15강).
+
+`QuestionRepositoryTest.java` (새 파일, 핵심)
+```java
+@SpringBootTest
+class QuestionRepositoryTest {
+    @Autowired
+    private QuestionRepository questionRepository;
+
+    @Test
+    void t1() {
+        List<Question> questions = questionRepository.findAll();
+        assertThat(questions).hasSize(2);   // 샘플 데이터 2건
+        assertThat(questions.get(0).getCreateDate()).isNotNull();   // Auditing이 채움
+    }
+
+    @Test
+    void t2() {
+        Question q = questionRepository.findById(1).get();
+        assertThat(q.getSubject()).isEqualTo("sbb가 무엇인가요?");
+    }
+}
+```
+
+**결과**
+![테스트 결과](docs/steps/005-02-1.jpg)
