@@ -924,3 +924,23 @@ public class DataNotFoundException extends RuntimeException {
 ```
 
 > **결과** 실제 URL은 그대로라서 화면과 테스트 결과가 같습니다.
+
+### 012-01 답변 기능, 상세 화면에 답변 폼
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/012-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/012-01)
+
+**무엇을** 상세 화면에 답변 작성 폼을 추가했습니다.
+
+**왜** 폼은 사용자가 입력한 값으로 요청(URL + 파라미터)을 만들어 주는 도구입니다(14168 3강). 데이터를 새로 만드는 요청이므로 GET이 아니라 **POST**로 보냅니다(14168 7강).
+
+`question_detail.html`
+```diff
+  <div th:text="${question.content}">내용</div>
++
++ <form th:action="@{|/answer/create/${question.id}|}" method="post">
++     <textarea name="content" id="content" rows="15"></textarea>
++     <input type="submit" value="답변등록">
++ </form>
+```
+
+**결과** 아직 `/answer/create/2`를 처리하는 컨트롤러가 없어서, 지금 전송하면 404입니다. 다음 커밋에서 만듭니다.
+![답변 폼](docs/steps/012-01-1.jpg)
