@@ -8,6 +8,7 @@ import com.mysite.sbb.domain.question.comment.service.CommentService;
 import com.mysite.sbb.domain.question.question.entity.Question;
 import com.mysite.sbb.domain.question.question.service.QuestionService;
 import com.mysite.sbb.domain.user.user.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -30,6 +31,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.util.HashSet;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/question") // 이 컨트롤러의 모든 URL 앞에 /question 이 붙는다. (교재 2-11)
@@ -76,9 +79,21 @@ public class QuestionController {
             @PathVariable int id,
             @ModelAttribute("answerForm") AnswerForm answerForm, // 답변 폼(th:object)에 쓸 빈 객체
             @RequestParam(defaultValue = "0") int answerPage,
-            @RequestParam(defaultValue = "latest") String answerSort
+            @RequestParam(defaultValue = "latest") String answerSort,
+            HttpSession session
     ) {
-        Question question = questionService.getQuestion(id);
+        Question question = questionService.getQuestion(id); // 없는 질문이면 여기서 404
+
+        // 조회 수: 같은 세션(브라우저)에서는 질문당 한 번만 올린다. -> 새로고침, 답변 작성 후 redirect로 오르는 것 방지
+        @SuppressWarnings("unchecked")
+        Set<Integer> viewed = (Set<Integer>) session.getAttribute("viewedQuestionIds");
+        if (viewed == null) viewed = new HashSet<>();
+        if (viewed.add(id)) {
+            questionService.increaseViewCount(id);
+            session.setAttribute("viewedQuestionIds", viewed);
+            question = questionService.getQuestion(id); // 증가된 값을 다시 읽는다.
+        }
+
         model.addAttribute("question", question);
         // 답변은 question.answers 전체 대신 페이지 단위로 (도전과제: 답변 페이징과 정렬)
         model.addAttribute("answerPaging", answerService.getList(question, answerPage, answerSort));

@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 // 컨트롤러는 요청/응답만, 서비스는 업무 로직을, 리포지터리는 DB 접근만 맡는다. (교재 2-09)
 @Service
@@ -32,6 +33,11 @@ public class QuestionService {
     public Page<Question> getList(int page, String kw, Category category) {
         Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("createDate"), Sort.Order.desc("id")));
         return questionRepository.findAllByKeyword(kw, category, pageable); // SELECT ... LIMIT 10 OFFSET page*10 + SELECT COUNT(*)
+    }
+
+    @Transactional // UPDATE 쿼리는 트랜잭션 안에서 실행되어야 한다.
+    public void increaseViewCount(int id) {
+        questionRepository.increaseViewCount(id);
     }
 
     public Question getQuestion(int id) {

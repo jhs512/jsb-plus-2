@@ -2747,3 +2747,44 @@ public String recent(Model model) {
 ![최근 활동](docs/steps/035-01-1.jpg)
 
 > **확인해 볼 것** 정렬 조건에서 `IdDesc`를 빼면 어떻게 될까요? 초기 데이터처럼 같은 시각(밀리초 이하까지 같은 경우)에 여러 건이 저장되면 순서가 매번 달라질 수 있습니다. 정렬 기준이 겹칠 때를 대비해 고유한 값(id)을 마지막 기준으로 두는 습관입니다.
+
+### 036-01 조회 수, 세션당 1회와 원자적 증가
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/036-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/036-01)
+
+**무엇을** 질문에 조회 수를 넣었습니다. 상세 화면을 열 때 1씩 오르지만, 같은 세션(브라우저)에서는 질문당 한 번만 오릅니다. 증가는 엔티티를 고치지 않고 DB에서 `UPDATE ... SET view_count = view_count + 1`로 한 번에 처리합니다.
+
+**왜** 도전과제 3-14 "조회 수". 두 가지 함정을 피합니다.
+- **새로고침, 답변 등록 후 리다이렉트**로 조회 수가 계속 오르는 것 → 세션에 본 질문 id를 기억합니다.
+- **갱신 분실**: `question.setViewCount(question.getViewCount() + 1)`처럼 읽고 더해서 저장하면, 두 사람이 동시에 10을 읽고 둘 다 11을 저장해 1만 오를 수 있습니다. → DB가 직접 더하게 합니다.
+
+`QuestionRepository.java`
+```java
+@Modifying(clearAutomatically = true)   // UPDATE 후 영속성 컨텍스트를 비워 다음 조회 때 새 값을 읽게
+@Query("update Question q set q.viewCount = q.viewCount + 1 where q.id = :id")
+int increaseViewCount(@Param("id") int id);
+```
+
+`QuestionController.java`
+```diff
+  Question question = questionService.getQuestion(id);
++ Set<Integer> viewed = (Set<Integer>) session.getAttribute("viewedQuestionIds");
++ if (viewed == null) viewed = new HashSet<>();
++ if (viewed.add(id)) {                          // 처음 보는 질문일 때만 true
++     questionService.increaseViewCount(id);
++     session.setAttribute("viewedQuestionIds", viewed);
++     question = questionService.getQuestion(id);   // 증가된 값을 다시 읽는다
++ }
+```
+
+`Question.java`
+```diff
++ @Column(columnDefinition = "integer default 0 not null")   // 이미 있던 행에도 0
++ private int viewCount;
+```
+
+**결과**
+![세션당 1회](docs/steps/036-01-1.jpg)
+![목록 조회 열](docs/steps/036-01-2.jpg)
+![원자적 UPDATE SQL](docs/steps/036-01-3.jpg)
+
+> **확인해 볼 것** `clearAutomatically = true`를 지우고 상세 화면을 처음 열어 보세요. DB는 1이 됐는데 화면은 0으로 보입니다. 같은 트랜잭션에서 이미 읽어 둔 엔티티(1차 캐시)를 그대로 돌려주기 때문입니다. 벌크 UPDATE(JPQL update)는 영속성 컨텍스트를 거치지 않는다는 점이 핵심입니다.

@@ -33,6 +33,7 @@
             <th>번호</th>
             <th style="width:50%">제목</th>
             <th>글쓴이</th>
+            <th>조회</th>
             <th>작성일시</th>
         </tr>
         </thead>
@@ -53,6 +54,7 @@
             </td>
             <!-- ?. : author가 null이어도 에러 없이 빈 값 (14168 16강) -->
             <td th:text="${question.author?.username}">user1</td>
+            <td class="text-center" th:text="${question.viewCount}">0</td>
             <td th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm')}">2026-01-01 00:00</td>
         </tr>
         </tbody>

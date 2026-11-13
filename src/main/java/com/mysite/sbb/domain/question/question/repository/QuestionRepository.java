@@ -6,6 +6,7 @@ import com.mysite.sbb.domain.user.user.entity.SiteUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -26,6 +27,13 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
     // WHERE subject IN (?, ?)
     List<Question> findBySubjectIn(List<String> subjects);
+
+    // 조회 수 +1을 DB에서 한 번에 처리한다. (UPDATE ... SET view_count = view_count + 1)
+    // 엔티티를 읽고 +1 후 저장하면, 동시에 두 명이 조회할 때 하나가 덮어써져 1만 오를 수 있다(갱신 분실).
+    // clearAutomatically: UPDATE 후 영속성 컨텍스트를 비워, 다음 조회 때 바뀐 값을 다시 읽게 한다.
+    @Modifying(clearAutomatically = true)
+    @Query("update Question q set q.viewCount = q.viewCount + 1 where q.id = :id")
+    int increaseViewCount(@Param("id") int id);
 
     // 프로필: 내가 쓴 질문 최근 10개, 개수
     List<Question> findTop10ByAuthorOrderByCreateDateDesc(SiteUser author);

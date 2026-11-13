@@ -23,6 +23,7 @@
                 </div>
                 <div class="badge bg-light text-dark p-2 text-start">
                     <div class="mb-2" th:text="${question.author?.username}">user1</div>
+                    <div class="mb-2" th:text="|조회 ${question.viewCount}|">조회 0</div>
                     <div th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm')}"></div>
                 </div>
             </div>

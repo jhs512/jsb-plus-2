@@ -49,6 +49,10 @@ public class Question extends BaseEntity {
     @Column(columnDefinition = "TEXT") // 길이 제한 없는 텍스트
     private String content;
 
+    // 조회 수 (도전과제 3-14). 기존 행에도 0이 들어가도록 DB 기본값 지정
+    @Column(columnDefinition = "integer default 0 not null")
+    private int viewCount;
+
     // 질문(1) : 답변(N). DB 컬럼은 생기지 않는다.
     // mappedBy = "question": 관계의 주인은 Answer.question(question_id 외래키)이다. -> 중간 테이블 없음 (14163 12강)
     // PERSIST: 이 리스트에 새로 추가된 답변은 자동 INSERT, REMOVE: 질문 삭제 시 답변도 자동 DELETE (14163 21강)

@@ -10,6 +10,7 @@ import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import com.mysite.sbb.domain.question.question.service.QuestionService;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -239,5 +240,19 @@ class QuestionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("/question/detail/2#answer_1")))
                 .andExpect(content().string(containsString("최근 댓글 테스트")));
+    }
+
+    @Test
+    @DisplayName("조회 수: 같은 세션에서 여러 번 봐도 1, 다른 세션이면 또 1 증가")
+    void t20() throws Exception {
+        int before = questionService.getQuestion(1).getViewCount();
+        MockHttpSession session1 = new MockHttpSession();
+
+        mvc.perform(get("/question/detail/1").session(session1));
+        mvc.perform(get("/question/detail/1").session(session1)); // 새로고침
+        org.assertj.core.api.Assertions.assertThat(questionService.getQuestion(1).getViewCount()).isEqualTo(before + 1);
+
+        mvc.perform(get("/question/detail/1").session(new MockHttpSession())) // 다른 사용자
+                .andExpect(content().string(containsString("조회 " + (before + 2))));
     }
 }
