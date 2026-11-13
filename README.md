@@ -1780,3 +1780,30 @@ public UserDetails loadUserByUsername(String username) {
 **결과** 로그인하지 않고 등록 화면에 가면 로그인 화면으로 302 됩니다. 로그인하고 등록하면 `AUTHOR_ID`에 로그인한 회원이 연결됩니다.
 ![비로그인 302](docs/steps/024-01-1.jpg)
 ![AUTHOR_ID](docs/steps/024-01-2.jpg)
+
+### 024-02 글쓴이, 목록과 상세에 글쓴이 표시
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/024-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/024-02)
+
+**무엇을** 목록과 상세에 글쓴이를 표시하고, 로그인하지 않은 사용자에게는 답변 입력칸을 비활성화했습니다.
+
+**왜** 누가 쓴 글인지 화면에 보여 줍니다(교재 3-08). 글쓴이가 없는 예전 데이터가 있어도 에러가 나지 않도록 `?.`(안전 접근)를 씁니다(14168 16강).
+
+`question_list.html`
+```diff
++ <th>글쓴이</th>
+  ...
++ <td th:text="${question.author?.username}">user1</td>
+```
+
+`question_detail.html`
+```diff
++ <div class="mb-2" th:text="${question.author?.username}">user1</div>
+  ...
+- <textarea th:field="*{content}" rows="10" class="form-control"></textarea>
++ <textarea sec:authorize="isAnonymous()" disabled class="form-control" rows="10">로그인 후 답변을 작성할 수 있습니다.</textarea>
++ <textarea sec:authorize="isAuthenticated()" th:field="*{content}" rows="10" class="form-control"></textarea>
+```
+
+**결과**
+![목록 글쓴이](docs/steps/024-02-1.jpg)
+![상세 글쓴이](docs/steps/024-02-2.jpg)
