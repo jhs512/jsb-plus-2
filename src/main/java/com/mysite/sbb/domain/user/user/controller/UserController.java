@@ -128,4 +128,32 @@ public class UserController {
         redirectAttributes.addFlashAttribute("msg", "비밀번호가 변경되었습니다.");
         return "redirect:/user/password";
     }
+
+    // ===== 비밀번호 찾기 (도전과제 3-14) =====
+    public record PasswordResetForm(
+            @NotBlank(message = "01-email-이메일을 입력해주세요.")
+            @Email(message = "02-email-이메일 형식이 올바르지 않습니다.")
+            String email
+    ) {
+    }
+
+    @GetMapping("/password/reset")
+    public String showResetPassword(@ModelAttribute("form") PasswordResetForm form) {
+        return "password_reset_form";
+    }
+
+    @PostMapping("/password/reset")
+    @Transactional
+    public String resetPassword(
+            @ModelAttribute("form") @Valid PasswordResetForm form,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes
+    ) {
+        if (bindingResult.hasErrors()) return "password_reset_form";
+
+        userService.resetPassword(form.email());
+
+        redirectAttributes.addFlashAttribute("msg", "가입된 이메일이라면 임시 비밀번호를 보냈습니다. 메일을 확인해주세요.");
+        return "redirect:/user/login";
+    }
 }

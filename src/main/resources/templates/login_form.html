@@ -6,6 +6,7 @@
     <div class="my-3 border-bottom">
         <h4>로그인</h4>
     </div>
+    <div th:if="${msg}" class="alert alert-success" th:text="${msg}">메시지</div>
     <!-- 로그인 실패 시 시큐리티가 /user/login?error 로 보낸다. -->
     <div th:if="${param.error}" class="alert alert-danger">
         사용자ID 또는 비밀번호를 확인해 주세요.
@@ -23,6 +24,7 @@
             </label>
         </div>
         <button type="submit" class="btn btn-primary">로그인</button>
+        <a th:href="@{/user/password/reset}" class="ms-2">비밀번호를 잊으셨나요?</a>
     </form>
 </div>
 </html>

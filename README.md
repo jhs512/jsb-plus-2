@@ -2635,3 +2635,43 @@ public void send(String to, String subject, String text) {
 ![MailServiceTest](docs/steps/033-02-1.jpg)
 
 > **확인해 볼 것** `application-secret.yaml.template`을 `application-secret.yaml`로 복사해 값을 채운 뒤 `git status`를 실행해 보세요. 파일이 목록에 나오지 않습니다(.gitignore). `git check-ignore -v application-secret.yaml`로 어느 규칙에 걸렸는지도 볼 수 있습니다.
+
+### 033-03 비밀번호 찾기, 임시 비밀번호 메일 발송
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/033-03) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/033-03)
+
+**무엇을** 비밀번호 찾기(`/user/password/reset`)를 만들었습니다. 이메일을 입력하면 임시 비밀번호(10자)로 바꾸고 메일로 보냅니다. 로그인 화면에 "비밀번호를 잊으셨나요?" 링크를 넣었습니다.
+
+**왜** 도전과제 3-14 "비밀번호 찾기". DB의 비밀번호는 BCrypt 해시라 원래 비밀번호를 되돌려 알려 줄 수 없습니다. 그래서 새 임시 비밀번호를 만들어 바꾸고 그 값을 보냅니다.
+
+`UserService.java`
+```java
+// 이메일이 없어도 예외를 던지지 않는다 -> 화면에서 가입 여부를 알 수 없게
+public void resetPassword(String email) {
+    userRepository.findByEmail(email).ifPresent(user -> {
+        String tempPassword = createTempPassword();   // SecureRandom, 헷갈리는 글자(0 O 1 l I) 제외
+        changePassword(user, tempPassword);           // 033-01에서 만든 메서드 재사용
+        mailService.send(user.getEmail(), "[SBB] 임시 비밀번호 안내", "...임시 비밀번호는 %s 입니다...".formatted(tempPassword));
+    });
+}
+```
+
+`UserServiceTest.java` (실제 메일 대신 가짜 MailService로 보낸 내용을 잡아 확인)
+```java
+@MockitoBean
+private MailService mailService;
+...
+verify(mailService).send(eq("user1@test.com"), anyString(), textCaptor.capture());
+String tempPassword = ...;   // 메일 본문에서 임시 비밀번호 추출
+assertThat(userService.matchesPassword(user, tempPassword)).isTrue();
+assertThat(userService.matchesPassword(user, "1234")).isFalse();
+```
+
+**결과**
+![비밀번호 찾기 링크](docs/steps/033-03-1.jpg)
+![같은 안내 문구와 302](docs/steps/033-03-2.jpg)
+![메일 대신 로그](docs/steps/033-03-3.jpg)
+![임시 비밀번호로 로그인](docs/steps/033-03-4.jpg)
+
+> **교재와 다른 점** 교재에는 없는 도전과제입니다. 메일 설정이 없는 개발 환경에서는 033-02의 `MailService`가 로그로 대신 남기므로 위처럼 로그에서 임시 비밀번호를 확인할 수 있습니다.
+>
+> **확인해 볼 것** 가입하지 않은 이메일(`nobody@test.com`)을 넣어 보세요. 화면 문구는 똑같고, 서버 로그에는 아무것도 남지 않습니다.
