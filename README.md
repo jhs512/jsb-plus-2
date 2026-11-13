@@ -2066,3 +2066,32 @@ public int hashCode() { return Objects.hashCode(id); }
 ![중간 테이블](docs/steps/026-01-1.jpg)
 
 > **확인해 볼 것** 004-03 실험에서는 중간 테이블이 **불필요**했습니다(N:1 관계를 mappedBy 없이 선언). 이번에는 N:N이라 **필요**합니다. 같은 "중간 테이블"이라도 관계의 종류에 따라 의미가 다릅니다.
+
+### 026-02 추천, 추천 POST와 버튼
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/026-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/026-02)
+
+**무엇을** 질문·답변 추천을 **POST**(`POST /question/vote/{id}`, `POST /answer/vote/{id}`)로 만들고, 상세 화면에 추천 버튼과 추천 수를 표시했습니다.
+
+**왜** 교재는 추천을 GET 링크로 처리하지만, 추천은 데이터를 바꾸므로 POST입니다(025-01의 `a[method]` 재사용).
+
+`QuestionController.java`
+```java
+@PreAuthorize("isAuthenticated()")
+@PostMapping("/vote/{id}")   // 교재: @GetMapping
+@Transactional
+public String vote(@PathVariable int id, Principal principal) {
+    questionService.getQuestion(id).vote(userService.getUser(principal.getName()));
+    return "redirect:/question/detail/%d".formatted(id);
+}
+```
+
+`question_detail.html`
+```html
+<a th:href="@{|/question/vote/${question.id}|}" method="POST"
+   onclick="return confirm('정말로 추천하시겠습니까?');" class="btn btn-sm btn-outline-secondary">
+    추천 <span class="badge rounded-pill bg-success" th:text="${#lists.size(question.voters)}">0</span>
+</a>
+```
+
+**결과** 확인 창에서 "확인"을 누르면 POST로 전송되고 추천 수가 1이 됩니다.
+![추천 POST](docs/steps/026-02-1.jpg)

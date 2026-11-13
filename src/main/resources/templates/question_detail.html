@@ -22,6 +22,14 @@
                 </div>
             </div>
             <!-- 본인 글일 때만 수정, 삭제 버튼 -->
+            <div class="my-3">
+                <!-- 추천: POST 요청 (global.js), 추천 수 = voters 크기 -->
+                <a th:href="@{|/question/vote/${question.id}|}" method="POST"
+                   onclick="return confirm('정말로 추천하시겠습니까?');"
+                   class="btn btn-sm btn-outline-secondary">
+                    추천 <span class="badge rounded-pill bg-success" th:text="${#lists.size(question.voters)}">0</span>
+                </a>
+            </div>
             <div class="my-3" sec:authorize="isAuthenticated()"
                  th:if="${question.author != null and #authentication.name == question.author.username}">
                 <a th:href="@{|/question/modify/${question.id}|}" class="btn btn-sm btn-outline-secondary">수정</a>
@@ -51,6 +59,14 @@
                     <div class="mb-2" th:text="${answer.author?.username}">user2</div>
                     <div th:text="${#temporals.format(answer.createDate, 'yyyy-MM-dd HH:mm')}"></div>
                 </div>
+            </div>
+            <div class="my-3">
+                <!-- 추천: POST 요청 (global.js), 추천 수 = voters 크기 -->
+                <a th:href="@{|/answer/vote/${answer.id}|}" method="POST"
+                   onclick="return confirm('정말로 추천하시겠습니까?');"
+                   class="btn btn-sm btn-outline-secondary">
+                    추천 <span class="badge rounded-pill bg-success" th:text="${#lists.size(answer.voters)}">0</span>
+                </a>
             </div>
             <div class="my-3" sec:authorize="isAuthenticated()"
                  th:if="${answer.author != null and #authentication.name == answer.author.username}">

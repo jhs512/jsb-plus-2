@@ -192,4 +192,13 @@ class QuestionControllerTest {
         mvc.perform(get("/question/delete/2"))
                 .andExpect(status().isMethodNotAllowed());
     }
+
+    @Test
+    @DisplayName("POST /question/vote/1 -> 추천, 두 번 눌러도 1표")
+    void t16() throws Exception {
+        mvc.perform(post("/question/vote/1").with(csrf())).andExpect(redirectedUrl("/question/detail/1"));
+        mvc.perform(post("/question/vote/1").with(csrf()));
+
+        org.assertj.core.api.Assertions.assertThat(questionService.getQuestion(1).getVoters()).hasSize(1);
+    }
 }

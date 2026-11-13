@@ -111,4 +111,14 @@ public class AnswerController {
 
         return "redirect:/question/detail/%d".formatted(questionId);
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/vote/{id}")
+    @Transactional
+    public String vote(@PathVariable int id, Principal principal) {
+        Answer answer = answerService.getAnswer(id);
+        answer.vote(userService.getUser(principal.getName()));
+
+        return "redirect:/question/detail/%d".formatted(answer.getQuestion().getId());
+    }
 }

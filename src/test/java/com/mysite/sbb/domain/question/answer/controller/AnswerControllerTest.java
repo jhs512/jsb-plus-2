@@ -84,4 +84,12 @@ class AnswerControllerTest {
         answerRepository.flush();
         assertThat(answerRepository.findById(1)).isEmpty();
     }
+
+    @Test
+    @DisplayName("POST /answer/vote/1 -> 답변 추천")
+    void t6() throws Exception {
+        mvc.perform(post("/answer/vote/1").with(csrf())).andExpect(redirectedUrl("/question/detail/2"));
+
+        assertThat(answerRepository.findById(1).get().getVoters()).hasSize(1);
+    }
 }

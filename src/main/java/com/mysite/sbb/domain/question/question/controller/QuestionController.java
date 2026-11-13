@@ -150,4 +150,15 @@ public class QuestionController {
 
         return "redirect:/";
     }
+
+    // 추천은 데이터를 바꾸므로 POST (교재는 GET /question/vote/{id}) - PLAN 결정 2
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/vote/{id}")
+    @Transactional
+    public String vote(@PathVariable int id, Principal principal) {
+        Question question = questionService.getQuestion(id);
+        question.vote(userService.getUser(principal.getName()));
+
+        return "redirect:/question/detail/%d".formatted(id);
+    }
 }
