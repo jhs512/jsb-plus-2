@@ -1292,3 +1292,29 @@ public String create(@ModelAttribute("form") @Valid QuestionForm form,
 
 **결과**
 ![답변 검증](docs/steps/016-06-1.jpg)
+
+### 017-01 내비게이션 바, navbar 프래그먼트
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/017-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/017-01)
+
+**무엇을** 모든 페이지 위에 내비게이션 바를 넣었습니다.
+
+**왜** 공통 메뉴를 한 파일(`navbar.html`)에서 관리하고, 레이아웃에서 한 번만 포함합니다(교재 3-01). 화면이 좁으면 메뉴가 햄버거 버튼으로 접힙니다(부트스트랩 JS 필요).
+
+`navbar.html` (새 파일, 핵심)
+```html
+<nav th:fragment="navbarFragment" class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+    <a class="navbar-brand" th:href="@{/}">SBB</a>
+    <!-- ... 질문 목록 링크, 토글 버튼 -->
+</nav>
+```
+
+`layout.html`
+```diff
+  <body>
++ <nav th:replace="~{navbar :: navbarFragment}"></nav>
+  <th:block layout:fragment="content"></th:block>
++ <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.8/js/bootstrap.bundle.min.js"></script>
+```
+
+**결과**
+![내비게이션 바](docs/steps/017-01-1.jpg)
