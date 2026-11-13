@@ -1455,3 +1455,25 @@ public class DevInitData {
 | ![전](docs/steps/020-01-2.jpg) | ![후](docs/steps/020-02-1.jpg) |
 
 > **확인해 볼 것** 코드는 한 줄도 바꾸지 않았습니다. 같은 `question.answers`를 읽어도 설정 하나로 SQL이 달라집니다.
+
+### 021-01 스프링 시큐리티, [실험] 의존성만 추가하면 모든 요청이 막힌다
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/021-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/021-01)
+
+**무엇을** `spring-boot-starter-security` 의존성**만** 추가했습니다. 설정은 아직 없습니다. **(실험 커밋, 이 커밋에서는 컨트롤러 테스트 12건이 일부러 실패합니다)**
+
+**왜** 스프링 시큐리티는 컨트롤러보다 앞(필터)에서 동작합니다. 설정이 없을 때의 기본값 두 가지를 먼저 눈으로 확인합니다(14168 46강).
+1. 로그인하지 않은 요청은 **모두 거절**하고 로그인 화면으로 보낸다.
+2. POST, PUT, DELETE 요청은 **CSRF 토큰**을 검사한다.
+
+`build.gradle.kts`
+```diff
++ implementation("org.springframework.boot:spring-boot-starter-security")
++ testImplementation("org.springframework.boot:spring-boot-starter-security-test")
+```
+
+**결과** 질문 목록에 들어가면 만든 적 없는 로그인 화면으로 302 리다이렉트됩니다. 기본 계정은 `user`, 비밀번호는 실행할 때마다 콘솔에 찍힙니다.
+![기본 로그인 화면](docs/steps/021-01-1.jpg)
+![생성된 비밀번호](docs/steps/021-01-2.jpg)
+![테스트 실패](docs/steps/021-01-3.jpg)
+
+> **확인해 볼 것** 다음 커밋에서 `SecurityFilterChain`을 직접 설정해 모든 요청을 허용하고, 테스트를 다시 통과시킵니다.
