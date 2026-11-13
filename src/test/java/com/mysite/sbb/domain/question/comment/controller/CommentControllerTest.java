@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -59,5 +61,21 @@ class CommentControllerTest {
     void t3() throws Exception {
         mvc.perform(post("/comment/create/question/1").with(csrf()).param("content", " "))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("본인 댓글 삭제 -> orphanRemoval로 DELETE, 남의 댓글 삭제 -> 403")
+    void t4() throws Exception {
+        mvc.perform(post("/comment/create/question/1").with(csrf()).param("content", "지울 댓글"));
+        commentRepository.flush();
+        int id = questionRepository.findById(1).get().getComments().get(0).getId();
+
+        mvc.perform(delete("/comment/delete/" + id).with(csrf()).with(user("user2")))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(delete("/comment/delete/" + id).with(csrf()))
+                .andExpect(redirectedUrl("/question/detail/1"));
+        commentRepository.flush();
+        assertThat(commentRepository.findById(id)).isEmpty();
     }
 }

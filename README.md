@@ -2461,3 +2461,29 @@ public String createForQuestion(@PathVariable int id, @Valid CommentForm form, P
 **결과**
 ![댓글](docs/steps/031-02-1.jpg)
 ![빈 댓글 차단](docs/steps/031-02-2.jpg)
+
+### 031-03 댓글, 댓글 삭제(DELETE)
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/031-03) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/031-03)
+
+**무엇을** 본인 댓글에 삭제 링크(`a[method=DELETE]`)를 붙이고, `DELETE /comment/delete/{id}`로 삭제합니다. 남의 댓글은 403입니다.
+
+**왜** 답변 삭제(025-06)와 같은 원리입니다. 부모(질문 또는 답변)의 댓글 목록에서 빼면 `orphanRemoval`이 DELETE를 실행합니다(14168 37강).
+
+`CommentService.java`
+```java
+public void delete(Comment comment) {
+    if (comment.getQuestion() != null) comment.getQuestion().deleteComment(comment);
+    else comment.getAnswer().deleteComment(comment);
+}
+```
+
+`comment_fragment.html`
+```html
+<a th:if="${comment.author != null and #authentication.name == comment.author.username}"
+   th:href="@{|/comment/delete/${comment.id}|}" method="DELETE"
+   onclick="return confirm('댓글을 삭제하시겠습니까?');" class="text-danger ms-1">삭제</a>
+```
+
+**결과** 확인 창에서 "확인"을 누르면 `POST(_method=DELETE)` → 302이고, 댓글이 사라집니다.
+![삭제 링크](docs/steps/031-03-1.jpg)
+![DELETE 302](docs/steps/031-03-2.jpg)
