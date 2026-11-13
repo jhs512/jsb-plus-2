@@ -903,3 +903,24 @@ public class DataNotFoundException extends RuntimeException {
 | 변경 전: 500 | 변경 후: 404 |
 |---|---|
 | ![500](docs/steps/010-03-1.jpg) | ![404](docs/steps/010-03-2.jpg) |
+
+### 011-01 URL 프리픽스, @RequestMapping("/question")
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/011-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/011-01)
+
+**무엇을** `QuestionController`에 `@RequestMapping("/question")`을 붙이고, 메서드에는 나머지 경로만 적었습니다.
+
+**왜** 이 컨트롤러의 URL은 모두 `/question`으로 시작합니다. 공통 앞부분을 한 곳에서 관리합니다(교재 2-11).
+
+```diff
+  @Controller
++ @RequestMapping("/question")
+  @RequiredArgsConstructor
+  public class QuestionController {
+-     @GetMapping("/question/list")
++     @GetMapping("/list")
+      ...
+-     @GetMapping("/question/detail/{id}")
++     @GetMapping("/detail/{id}")
+```
+
+> **결과** 실제 URL은 그대로라서 화면과 테스트 결과가 같습니다.
