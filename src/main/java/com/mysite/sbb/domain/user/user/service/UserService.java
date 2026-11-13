@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +32,18 @@ public class UserService {
 
     public void changePassword(SiteUser user, String newRawPassword) {
         user.changePassword(passwordEncoder.encode(newRawPassword)); // 트랜잭션 안이면 더티체킹으로 UPDATE
+    }
+
+    // 소셜 로그인 사용자 (도전과제 3-14)
+    // 아이디는 "제공자_제공자의사용자ID" (예: google_1234567890), 비밀번호는 쓸 일이 없으므로 무작위 값
+    public SiteUser findOrCreateSocialUser(String provider, String providerUserId, String email) {
+        String username = provider + "_" + providerUserId;
+
+        return userRepository.findByUsername(username).orElseGet(() -> {
+            // 같은 이메일로 이미 일반 가입한 계정이 있으면 unique 충돌이 나므로 이메일은 비워 둔다.
+            String safeEmail = (email == null || userRepository.existsByEmail(email)) ? null : email;
+            return create(username, safeEmail, UUID.randomUUID().toString());
+        });
     }
 
     // 비밀번호 찾기 (도전과제 3-14): 임시 비밀번호로 바꾸고 가입한 이메일로 보낸다.

@@ -8,7 +8,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.validation.BindingResult;
@@ -19,12 +23,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final ObjectProvider<ClientRegistrationRepository> clientRegistrations;
 
     public record UserCreateForm(
             @NotBlank(message = "01-username-사용자ID는 필수항목입니다.")
@@ -77,7 +84,14 @@ public class UserController {
 
     // 화면만 보여준다. POST /user/login 처리는 스프링 시큐리티 필터가 담당한다.
     @GetMapping("/login")
-    public String showLogin() {
+    public String showLogin(Model model) {
+        // 설정된 소셜 로그인 제공자 목록 (없으면 버튼을 보여주지 않는다)
+        List<ClientRegistration> providers = new ArrayList<>();
+        if (clientRegistrations.getIfAvailable() instanceof Iterable<?> registrations) {
+            registrations.forEach(r -> providers.add((ClientRegistration) r));
+        }
+        model.addAttribute("oauth2Providers", providers);
+
         return "login_form";
     }
 

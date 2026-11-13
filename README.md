@@ -2788,3 +2788,39 @@ int increaseViewCount(@Param("id") int id);
 ![원자적 UPDATE SQL](docs/steps/036-01-3.jpg)
 
 > **확인해 볼 것** `clearAutomatically = true`를 지우고 상세 화면을 처음 열어 보세요. DB는 1이 됐는데 화면은 0으로 보입니다. 같은 트랜잭션에서 이미 읽어 둔 엔티티(1차 캐시)를 그대로 돌려주기 때문입니다. 벌크 UPDATE(JPQL update)는 영속성 컨텍스트를 거치지 않는다는 점이 핵심입니다.
+
+### 037-01 소셜 로그인(실험), OAuth2UserService만 연결하면 구글 로그인 후 404
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/037-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/037-01)
+
+**무엇을** 구글 로그인을 붙였습니다. `spring-boot-starter-oauth2-client`를 추가하고, 구글 사용자 정보를 우리 회원(`SiteUser`, username `google_{sub}`)과 연결하는 `SocialOAuth2UserService`를 만들었습니다. 클라이언트 ID가 설정돼 있을 때만 로그인 화면에 버튼이 나옵니다.
+그리고 **실제 구글 계정으로 로그인하면 프로필이 404**가 나는 것을 확인했습니다. 이 단계는 그 실패를 남기는 **실험 커밋**입니다(테스트는 모두 통과합니다).
+
+**왜** 도전과제 3-14 "소셜 로그인". 기존 코드는 어디서나 `principal.getName()`으로 회원을 찾습니다. 그래서 소셜 로그인 사용자도 이름이 우리 회원 username이 되도록 연결해야 합니다.
+
+`SecurityConfig.java`
+```java
+if (clientRegistrations.getIfAvailable() != null) {   // application-secret.yaml에 client-id가 있을 때만
+    http.oauth2Login(oauth2 -> oauth2
+            .loginPage("/user/login")
+            .userInfoEndpoint(userInfo -> userInfo.userService(socialOAuth2UserService)));
+}
+```
+
+`SocialOAuth2UserService.java`
+```java
+public OAuth2User loadUser(OAuth2UserRequest userRequest) {
+    OAuth2User oAuth2User = super.loadUser(userRequest);
+    SiteUser siteUser = userService.findOrCreateSocialUser(provider, oAuth2User.getName(), email);
+    return new DefaultOAuth2User(authorities, attributes, ...);   // 이름 = google_{sub}
+}
+```
+
+**결과** 로그인은 성공하는데 내비게이션 바의 이름이 구글 고유번호(sub)이고, 프로필은 404입니다. DB에도 `google_` 회원이 없습니다. 위 `loadUser`가 **아예 호출되지 않았다**는 뜻입니다. (고유번호는 이미지에서 가렸습니다.)
+![구글 로그인 버튼](docs/steps/037-01-1.jpg)
+![이름이 구글 sub](docs/steps/037-01-2.jpg)
+![프로필 404](docs/steps/037-01-3.jpg)
+![SITE_USER에 회원 없음](docs/steps/037-01-4.jpg)
+
+> **원인 힌트** 설정의 `scope: openid, profile, email`. `openid`가 들어가면 OAuth2가 아니라 **OIDC** 로그인이 되고, 스프링 시큐리티는 `OAuth2UserService`가 아닌 `OidcUserService`를 부릅니다. 다음 단계에서 고칩니다.
+>
+> **확인해 볼 것** 가짜 client-id로 만든 테스트(`SocialLoginConfigTest`)는 구글로 리다이렉트되는 것까지만 확인합니다. 그래서 이 버그를 잡지 못했습니다. 외부 서비스가 끼는 기능은 실제로 한 번 끝까지 해 봐야 합니다.

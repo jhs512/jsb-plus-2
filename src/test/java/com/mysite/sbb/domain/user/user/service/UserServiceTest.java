@@ -65,4 +65,18 @@ class UserServiceTest {
 
         verify(mailService, never()).send(anyString(), anyString(), anyString());
     }
+
+    @Test
+    @DisplayName("소셜 로그인 회원: 처음엔 생성, 다음엔 같은 회원, 이메일 중복이면 이메일 비움")
+    void t4() {
+        SiteUser first = userService.findOrCreateSocialUser("google", "1234567890", "social@test.com");
+        SiteUser second = userService.findOrCreateSocialUser("google", "1234567890", "social@test.com");
+
+        assertThat(first.getUsername()).isEqualTo("google_1234567890");
+        assertThat(second.getId()).isEqualTo(first.getId());
+        assertThat(first.getEmail()).isEqualTo("social@test.com");
+
+        SiteUser conflict = userService.findOrCreateSocialUser("google", "999", "user1@test.com");
+        assertThat(conflict.getEmail()).isNull();
+    }
 }

@@ -137,4 +137,12 @@ class UserControllerTest {
                 .andExpect(view().name("password_form"))
                 .andExpect(model().attributeHasFieldErrorCode("form", "currentPassword", "mismatch"));
     }
+
+    @Test
+    @DisplayName("소셜 로그인 설정이 없으면 로그인 화면에 소셜 버튼이 없다")
+    void t11() throws Exception {
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/user/login"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("href=\"/oauth2/authorization"))));  // 주석 속 설명 문구는 제외
+    }
 }

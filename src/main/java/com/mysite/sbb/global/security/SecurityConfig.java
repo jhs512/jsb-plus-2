@@ -1,5 +1,7 @@
 package com.mysite.sbb.global.security;
 
+import com.mysite.sbb.domain.user.user.service.SocialOAuth2UserService;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -7,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 
 // 시큐리티는 컨트롤러보다 앞단(필터)에서 동작한다.
@@ -16,7 +19,11 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity // 컨트롤러 메서드의 @PreAuthorize 동작
 public class SecurityConfig {
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) {
+    public SecurityFilterChain filterChain(
+            HttpSecurity http,
+            ObjectProvider<ClientRegistrationRepository> clientRegistrations,
+            SocialOAuth2UserService socialOAuth2UserService
+    ) {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/favicon.ico").permitAll()
@@ -43,6 +50,15 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/")
                         .invalidateHttpSession(true)
                 );
+
+        // 소셜 로그인: client-id 설정(application-secret.yaml)이 있을 때만 켠다. 없으면 일반 로그인만 동작
+        if (clientRegistrations.getIfAvailable() != null) {
+            http.oauth2Login(oauth2 -> oauth2
+                    .loginPage("/user/login")
+                    .defaultSuccessUrl("/")
+                    .userInfoEndpoint(userInfo -> userInfo.userService(socialOAuth2UserService))
+            );
+        }
 
         return http.build();
     }

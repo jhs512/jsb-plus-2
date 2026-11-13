@@ -26,5 +26,10 @@
         <button type="submit" class="btn btn-primary">로그인</button>
         <a th:href="@{/user/password/reset}" class="ms-2">비밀번호를 잊으셨나요?</a>
     </form>
+    <!-- 소셜 로그인: /oauth2/authorization/{제공자} 로 가면 시큐리티가 제공자 로그인 화면으로 보낸다. -->
+    <div class="mt-4" th:if="${!oauth2Providers.isEmpty()}">
+        <a th:each="p : ${oauth2Providers}" th:href="@{|/oauth2/authorization/${p.registrationId}|}"
+           class="btn btn-outline-dark me-2" th:text="|${p.clientName}로 로그인|">Google로 로그인</a>
+    </div>
 </div>
 </html>
