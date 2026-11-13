@@ -725,3 +725,34 @@ mvc.perform(get("/"))
 ![302 리다이렉트](docs/steps/008-01-1.jpg)
 
 > **확인해 볼 것** 브라우저 개발자 도구(F12) → Network 탭 → `Preserve log`를 체크하고 `/`에 접속하면 같은 모습을 볼 수 있습니다(14168 28강).
+
+### 009-01 서비스, QuestionService 도입
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/009-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/009-01)
+
+**무엇을** `QuestionService`를 만들고, 컨트롤러가 리포지터리 대신 서비스를 쓰도록 바꿨습니다.
+
+**왜** 역할을 나눕니다(교재 2-09). 컨트롤러는 요청과 응답만, 서비스는 업무 로직을, 리포지터리는 DB 접근만 맡습니다. 여러 컨트롤러가 같은 로직을 재사용할 수도 있습니다.
+
+`QuestionService.java` (새 파일)
+```java
+@Service
+@RequiredArgsConstructor   // final 필드를 받는 생성자 → 생성자 주입
+public class QuestionService {
+    private final QuestionRepository questionRepository;
+
+    public List<Question> getList() {
+        return questionRepository.findAll();
+    }
+}
+```
+
+`QuestionController.java`
+```diff
+- private final QuestionRepository questionRepository;
++ private final QuestionService questionService;
+  ...
+- List<Question> questionList = questionRepository.findAll();
++ List<Question> questionList = questionService.getList();
+```
+
+> **결과** 화면과 동작은 그대로입니다. 테스트 21건이 그대로 통과합니다.
