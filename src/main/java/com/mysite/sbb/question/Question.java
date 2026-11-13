@@ -1,6 +1,7 @@
 package com.mysite.sbb.question;
 
 import com.mysite.sbb.answer.Answer;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,7 +32,10 @@ public class Question {
 
     private LocalDateTime createDate; // 컬럼명은 create_date (카멜케이스 -> 스네이크케이스)
 
-    // [실험] mappedBy 없이 OneToMany만 선언하면?
-    @OneToMany
+    // 질문(1) : 답변(N). DB 컬럼은 생기지 않는다.
+    // mappedBy = "question": 관계의 주인은 Answer.question(question_id 외래키)이다. -> 중간 테이블 없음 (14163 12강)
+    // PERSIST: 이 리스트에 새로 추가된 답변은 자동 INSERT, REMOVE: 질문 삭제 시 답변도 자동 DELETE (14163 21강)
+    // new ArrayList<>(): null이 아니므로 바로 add 가능 (14163 23강)
+    @OneToMany(mappedBy = "question", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     private List<Answer> answers = new ArrayList<>();
 }

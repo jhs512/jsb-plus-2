@@ -310,3 +310,30 @@ public class Answer {
 ![QUESTION_ANSWERS 중간 테이블](docs/steps/004-03-1.jpg)
 
 > **확인해 볼 것** 다음 커밋에서 `mappedBy = "question"` 한 단어를 넣으면 이 테이블이 사라집니다.
+
+### 004-04 엔티티, mappedBy와 cascade로 OneToMany 완성
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/004-04) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/004-04)
+
+**무엇을** `@OneToMany`에 `mappedBy = "question"`과 `cascade`를 넣었습니다.
+
+**왜** `mappedBy = "question"`은 "이 관계의 주인은 `Answer.question` 필드(= `question_id` 외래키)"라는 뜻입니다. 질문 쪽 `answers`는 그 관계를 읽기만 하므로 중간 테이블이 필요 없습니다(14163 12강). `cascade`는 질문을 저장하거나 삭제할 때 답변도 함께 처리하도록 합니다(14163 21강).
+
+`Question.java`
+```diff
+- @OneToMany
++ @OneToMany(mappedBy = "question", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+  private List<Answer> answers = new ArrayList<>();
+```
+
+| 옵션 | 뜻 |
+|---|---|
+| `mappedBy = "question"` | 외래키는 `Answer.question`이 관리 → 중간 테이블 없음 |
+| `PERSIST` | 이 목록에 새로 추가한 답변은 자동 INSERT |
+| `REMOVE` | 질문을 삭제하면 답변도 자동 DELETE |
+| `= new ArrayList<>()` | null이 아니라서 바로 `add` 가능 (14163 23강) |
+
+**결과** 이전 단계와 비교하면 `QUESTION_ANSWERS` 테이블이 사라졌습니다.
+
+| 이전 (004-03) | 이후 (004-04) |
+|---|---|
+| ![이전](docs/steps/004-03-1.jpg) | ![이후](docs/steps/004-04-1.jpg) |
