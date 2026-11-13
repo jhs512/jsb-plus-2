@@ -1318,3 +1318,44 @@ public String create(@ModelAttribute("form") @Valid QuestionForm form,
 
 **결과**
 ![내비게이션 바](docs/steps/017-01-1.jpg)
+
+### 018-01 페이징, Pageable로 질문 목록 페이징
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/018-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/018-01)
+
+**무엇을** 질문 목록을 한 페이지에 10개씩, 최신 글부터 보여 줍니다.
+
+**왜** 글이 많아져도 한 번에 전부 조회하지 않고 필요한 만큼만 가져옵니다(교재 3-02).
+
+`QuestionService.java`
+```diff
+- public List<Question> getList() {
+-     return questionRepository.findAll();
++ // page: 0부터 시작. 한 페이지에 10개, 최신 글이 먼저
++ public Page<Question> getList(int page) {
++     Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("createDate"), Sort.Order.desc("id")));
++     return questionRepository.findAll(pageable);
+  }
+```
+
+`QuestionController.java`
+```diff
+- public String list(Model model) {
+-     List<Question> questionList = questionService.getList();
+-     model.addAttribute("questionList", questionList);
++ public String list(Model model, @RequestParam(defaultValue = "0") int page) {
++     Page<Question> paging = questionService.getList(page);
++     model.addAttribute("paging", paging);   // 목록 + 총 페이지 수, 현재 페이지 등
+```
+
+`question_list.html` (페이지 번호, 핵심)
+```html
+<li th:each="page : ${#numbers.sequence(0, paging.totalPages - 1)}"
+    th:if="${page >= paging.number - 5 and page <= paging.number + 5}"
+    th:classappend="${page == paging.number} ? 'active'" class="page-item">
+    <a th:text="${page + 1}" class="page-link" th:href="@{|?page=${page}|}">1</a>
+</li>
+```
+
+**결과** SQL 로그를 보면 `offset ? rows fetch first ? rows only`로 10개만 가져옵니다. 데이터가 2건뿐이라 화면에는 1페이지만 보입니다.
+![페이징 버튼](docs/steps/018-01-1.jpg)
+![페이징 SQL](docs/steps/018-01-2.jpg)

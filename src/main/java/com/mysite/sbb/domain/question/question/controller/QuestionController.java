@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -15,8 +16,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/question") // 이 컨트롤러의 모든 URL 앞에 /question 이 붙는다. (교재 2-11)
@@ -27,9 +27,12 @@ public class QuestionController {
     // @ResponseBody가 없으므로 반환값 "question_list"는 템플릿 이름이 된다.
     // -> templates/question_list.html 을 렌더링한 HTML이 응답 본문이 된다. (14163 28강)
     @GetMapping("/list")
-    public String list(Model model) {
-        List<Question> questionList = questionService.getList();
-        model.addAttribute("questionList", questionList); // 템플릿에서 ${questionList}로 사용
+    public String list(
+            Model model,
+            @RequestParam(defaultValue = "0") int page // /question/list?page=2
+    ) {
+        Page<Question> paging = questionService.getList(page);
+        model.addAttribute("paging", paging); // 목록(paging.content)과 페이지 정보(총 페이지 수 등)를 함께 전달
 
         return "question_list";
     }

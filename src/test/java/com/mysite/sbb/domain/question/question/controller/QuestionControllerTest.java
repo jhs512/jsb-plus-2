@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import com.mysite.sbb.domain.question.question.service.QuestionService;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class QuestionControllerTest {
     @Autowired
     private MockMvc mvc;
+    @Autowired
+    private QuestionService questionService;
 
     @Test
     @DisplayName("GET /question/list -> 질문 제목들이 보인다")
@@ -87,5 +90,19 @@ class QuestionControllerTest {
                 .andExpect(content().string(containsString("data-error-field-name=\"subject\"")))
                 .andExpect(content().string(containsString(">제목은 필수항목입니다.</li>"))) // 접두어 01-subject- 제거됨
                 .andExpect(content().string(containsString("내용은 입력함"))); // 입력값 유지
+    }
+
+    @Test
+    @DisplayName("페이징: 한 페이지에 10개, 최신 글이 먼저")
+    void t7() throws Exception {
+        for (int i = 1; i <= 25; i++) questionService.create("페이징 테스트 %02d".formatted(i), "내용");
+        // 총 27개 -> 3페이지 (10, 10, 7)
+
+        mvc.perform(get("/question/list"))
+                .andExpect(content().string(containsString("페이징 테스트 25"))) // 가장 최신 글
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("페이징 테스트 15"))));
+
+        mvc.perform(get("/question/list").param("page", "2"))
+                .andExpect(content().string(containsString("sbb가 무엇인가요?"))); // 가장 오래된 글은 마지막 페이지
     }
 }
