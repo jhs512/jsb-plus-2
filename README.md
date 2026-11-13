@@ -872,3 +872,34 @@ public Question getQuestion(int id) {
 
 **결과**
 ![제목 링크](docs/steps/010-02-1.jpg)
+
+### 010-03 상세 페이지, 없는 질문에 404 응답
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/010-03) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/010-03)
+
+**무엇을** 없는 질문 번호로 접속하면 500 대신 **404**를 응답합니다.
+
+**왜** `findById(id).get()`은 값이 없으면 `NoSuchElementException: No value present`를 던져 **500**이 됩니다. 원인을 알기 어렵고, "없는 자원"이라는 의미에도 맞지 않습니다. 커스텀 예외를 만들어 404로 바꿉니다(14163 35강 3단계).
+
+`DataNotFoundException.java` (새 파일)
+```java
+// 이 예외가 컨트롤러 밖으로 던져지면 스프링이 404 응답으로 바꿔 준다.
+@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "entity not found")
+public class DataNotFoundException extends RuntimeException {
+    public DataNotFoundException(String message) { super(message); }
+}
+```
+
+`QuestionService.java`
+```diff
+  public Question getQuestion(int id) {
+-     return questionRepository.findById(id).get();
++     return questionRepository.findById(id)
++             .orElseThrow(() -> new DataNotFoundException("question not found"));
+  }
+```
+
+**결과**
+
+| 변경 전: 500 | 변경 후: 404 |
+|---|---|
+| ![500](docs/steps/010-03-1.jpg) | ![404](docs/steps/010-03-2.jpg) |

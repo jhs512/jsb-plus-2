@@ -2,6 +2,7 @@ package com.mysite.sbb.domain.question.question.service;
 
 import com.mysite.sbb.domain.question.question.entity.Question;
 import com.mysite.sbb.domain.question.question.repository.QuestionRepository;
+import com.mysite.sbb.global.exception.DataNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,8 @@ public class QuestionService {
     }
 
     public Question getQuestion(int id) {
-        return questionRepository.findById(id).get();
+        // 없으면 500(No value present) 대신 404(question not found)
+        return questionRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("question not found"));
     }
 }

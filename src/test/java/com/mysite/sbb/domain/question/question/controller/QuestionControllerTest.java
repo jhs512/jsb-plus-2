@@ -38,4 +38,11 @@ class QuestionControllerTest {
                 .andExpect(content().string(containsString("스프링부트 모델 질문입니다.")))
                 .andExpect(content().string(containsString("id는 자동으로 생성되나요?")));
     }
+
+    @Test
+    @DisplayName("GET /question/detail/999 -> 없는 질문은 404")
+    void t3() throws Exception {
+        mvc.perform(get("/question/detail/999"))
+                .andExpect(status().isNotFound());
+    }
 }
