@@ -1167,3 +1167,35 @@ public String create(@ModelAttribute("form") @Valid QuestionForm form,
 
 **결과** 제목을 비우면 저장되지 않고, 입력했던 내용은 그대로 남습니다.
 ![검증 실패](docs/steps/016-02-1.jpg)
+
+### 016-03 질문 등록, 에러 프래그먼트와 정렬
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/016-03) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/016-03)
+
+**무엇을** 에러 출력 부분을 공통 프래그먼트(`form_errors.html`)로 빼고, 메시지를 **순번대로 정렬**하고 `01-subject-` 접두어를 떼서 보여 줍니다.
+
+**왜** 여러 폼에서 같은 방식으로 에러를 보여 주기 위해서입니다(14168 23·24강). 검증 에러는 순서가 보장되지 않아서, 메시지 앞에 붙인 순번으로 정렬합니다. 필드 이름(`subject`)은 `data-error-field-name` 속성에 남겨 두었다가 다음 단계에서 포커스에 씁니다.
+
+`form_errors.html` (새 파일)
+```html
+<th:block th:fragment="formErrorsFragment">
+    <ul th:if="${#fields.hasAnyErrors()}" class="alert alert-danger ps-4">
+        <li th:each="err : ${#fields.allErrors().stream().sorted()}"
+            th:with="errStrs = ${err.split('-', 3)},
+                     errFieldName = ${errStrs[1]},
+                     errMsg = ${errStrs[2]}"
+            th:data-error-field-name="${errFieldName}"
+            th:text="${errMsg}"></li>
+    </ul>
+</th:block>
+```
+
+`question_form.html`
+```diff
+- <ul th:if="${#fields.hasAnyErrors()}" class="alert alert-danger ps-4">
+-     <li th:each="err : ${#fields.allErrors()}" th:text="${err}">에러</li>
+- </ul>
++ <th:block th:replace="~{form_errors :: formErrorsFragment}"></th:block>
+```
+
+**결과**
+![정렬된 에러](docs/steps/016-03-1.jpg)

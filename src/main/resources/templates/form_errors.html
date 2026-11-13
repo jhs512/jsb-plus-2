@@ -1,0 +1,16 @@
+<!-- 폼 에러 공통 프래그먼트 (14168 23~24강)
+     사용법: <form th:object="${form}"> 안에서 <th:block th:replace="~{form_errors :: formErrorsFragment}"></th:block>
+     메시지 형식: "순번-필드명-내용" (예: 01-subject-제목은 필수항목입니다.) -->
+<th:block th:fragment="formErrorsFragment">
+    <ul th:if="${#fields.hasAnyErrors()}" class="alert alert-danger ps-4">
+        <!-- sorted(): 순번 기준 정렬, th:with: split 결과를 변수로 -->
+        <li
+                th:each="err : ${#fields.allErrors().stream().sorted()}"
+                th:with="errStrs = ${err.split('-', 3)},
+                    errFieldName = ${errStrs[1]},
+                    errMsg = ${errStrs[2]}"
+                th:data-error-field-name="${errFieldName}"
+                th:text="${errMsg}"
+        ></li>
+    </ul>
+</th:block>

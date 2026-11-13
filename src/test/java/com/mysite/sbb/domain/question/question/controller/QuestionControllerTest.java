@@ -84,7 +84,8 @@ class QuestionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("question_form"))
                 .andExpect(model().attributeHasFieldErrors("form", "subject"))
-                .andExpect(content().string(containsString("제목은 필수항목입니다.")))
+                .andExpect(content().string(containsString("data-error-field-name=\"subject\"")))
+                .andExpect(content().string(containsString(">제목은 필수항목입니다.</li>"))) // 접두어 01-subject- 제거됨
                 .andExpect(content().string(containsString("내용은 입력함"))); // 입력값 유지
     }
 }

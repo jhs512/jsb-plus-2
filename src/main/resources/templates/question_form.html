@@ -7,10 +7,8 @@
     <!-- th:object: 이 안에서는 *{필드명}으로 form의 필드에 접근 (14168 22강) -->
     <!-- action을 생략하면 현재 URL(/question/create)로 전송된다. (14168 26강) -->
     <form th:object="${form}" method="post">
-        <!-- 검증 에러 메시지 -->
-        <ul th:if="${#fields.hasAnyErrors()}" class="alert alert-danger ps-4">
-            <li th:each="err : ${#fields.allErrors()}" th:text="${err}">에러</li>
-        </ul>
+        <!-- 검증 에러 메시지 (공통 프래그먼트: 순번 정렬, 접두어 제거) -->
+        <th:block th:replace="~{form_errors :: formErrorsFragment}"></th:block>
         <div class="mb-3">
             <label class="form-label w-100">제목
                 <!-- th:field: name, id, value 속성을 자동으로 채워 준다. 검증 실패 시 입력값이 유지된다. -->
