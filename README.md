@@ -2824,3 +2824,38 @@ public OAuth2User loadUser(OAuth2UserRequest userRequest) {
 > **원인 힌트** 설정의 `scope: openid, profile, email`. `openid`가 들어가면 OAuth2가 아니라 **OIDC** 로그인이 되고, 스프링 시큐리티는 `OAuth2UserService`가 아닌 `OidcUserService`를 부릅니다. 다음 단계에서 고칩니다.
 >
 > **확인해 볼 것** 가짜 client-id로 만든 테스트(`SocialLoginConfigTest`)는 구글로 리다이렉트되는 것까지만 확인합니다. 그래서 이 버그를 잡지 못했습니다. 외부 서비스가 끼는 기능은 실제로 한 번 끝까지 해 봐야 합니다.
+
+### 037-02 소셜 로그인, OIDC(openid scope) 경로에서도 회원 연결
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/037-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/037-02)
+
+**무엇을** OIDC 로그인 경로에도 회원 연결을 넣었습니다. `OidcUserService`를 상속한 `SocialOidcUserService`가 구글 ID 토큰의 `sub`, `email`로 `SiteUser`를 찾거나 만들고, 로그인 사용자 이름을 우리 username(`google_{sub}`)으로 바꿉니다.
+
+**왜** 037-01의 404 원인입니다. 구글 설정의 scope에 `openid`가 있으면 스프링 시큐리티는 **OIDC** 로그인으로 처리하고, 사용자 정보는 `userService(...)`가 아니라 `oidcUserService(...)`로 불러옵니다. 그래서 만들어 둔 `SocialOAuth2UserService`가 한 번도 호출되지 않았습니다.
+
+`SecurityConfig.java`
+```diff
+  .userInfoEndpoint(userInfo -> userInfo
+-         .userService(socialOAuth2UserService))
++         .userService(socialOAuth2UserService)     // OAuth2 (scope에 openid 없음)
++         .oidcUserService(socialOidcUserService)   // OIDC (scope에 openid 있음, 구글 기본)
++ )
+```
+
+`SocialOidcUserService.java`
+```java
+public OidcUser loadUser(OidcUserRequest userRequest) {
+    OidcUser oidcUser = super.loadUser(userRequest);   // ID 토큰 검증 + 사용자 정보
+    SiteUser siteUser = userService.findOrCreateSocialUser("google", oidcUser.getSubject(), oidcUser.getEmail());
+    return new SiteOidcUser(oidcUser, siteUser.getUsername());   // getName()만 우리 username으로
+}
+```
+
+**결과** 같은 구글 계정으로 다시 로그인했습니다. 이름이 `google_…`이 되고, 프로필이 열리고, 소셜 회원으로 쓴 질문에 본인 수정·삭제 버튼이 보입니다. (고유번호와 이메일은 이미지에서 가렸습니다.)
+![이름이 google_](docs/steps/037-02-1.jpg)
+![프로필](docs/steps/037-02-2.jpg)
+![본인 글 버튼](docs/steps/037-02-3.jpg)
+![SITE_USER에 소셜 회원](docs/steps/037-02-4.jpg)
+
+> **교재와 다른 점** 교재에는 없는 도전과제입니다. 1차 저장소에서는 구현(037-01) 뒤 실제 로그인을 해 보고 나서야 이 버그를 찾았습니다. 이번에는 그 순서를 그대로 실험 → 해결로 남겼습니다.
+>
+> **확인해 볼 것** 설정의 scope에서 `openid`를 빼고(`profile, email`만) 다시 로그인해 보세요. 이번에는 `SocialOAuth2UserService`가 호출됩니다. 두 서비스를 모두 등록해 두면 scope가 바뀌어도 회원 연결이 끊기지 않습니다.

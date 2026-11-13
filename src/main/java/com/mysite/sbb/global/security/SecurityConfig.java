@@ -1,6 +1,7 @@
 package com.mysite.sbb.global.security;
 
 import com.mysite.sbb.domain.user.user.service.SocialOAuth2UserService;
+import com.mysite.sbb.domain.user.user.service.SocialOidcUserService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +23,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(
             HttpSecurity http,
             ObjectProvider<ClientRegistrationRepository> clientRegistrations,
-            SocialOAuth2UserService socialOAuth2UserService
+            SocialOAuth2UserService socialOAuth2UserService,
+            SocialOidcUserService socialOidcUserService
     ) {
         http
                 .authorizeHttpRequests(auth -> auth
@@ -56,7 +58,10 @@ public class SecurityConfig {
             http.oauth2Login(oauth2 -> oauth2
                     .loginPage("/user/login")
                     .defaultSuccessUrl("/")
-                    .userInfoEndpoint(userInfo -> userInfo.userService(socialOAuth2UserService))
+                    .userInfoEndpoint(userInfo -> userInfo
+                            .userService(socialOAuth2UserService)    // OAuth2 (scope에 openid 없음)
+                            .oidcUserService(socialOidcUserService)  // OIDC (scope에 openid 있음, 구글 기본)
+                    )
             );
         }
 
