@@ -234,3 +234,35 @@ class DefaultTestProfileTest {
 ```
 
 > **확인해 볼 것** 아직 엔티티가 없어서 출력될 SQL이 없습니다. 바로 다음 단계(004-01)에서 `create table question …`이 이 형식으로 찍힙니다.
+
+### 004-01 엔티티, Question 엔티티
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/004-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/004-01)
+
+**무엇을** 질문을 저장할 `Question` 엔티티를 만들었습니다.
+
+**왜** `@Entity`가 붙은 클래스를 보고 JPA가 테이블을 만듭니다(`ddl-auto: update`). 테이블을 SQL로 직접 만들지 않고 자바 클래스로 설계합니다(교재 2-04).
+
+`Question.java` (새 파일)
+```java
+@Entity            // 이 클래스를 기준으로 question 테이블이 만들어진다.
+@Getter @Setter
+public class Question {
+    @Id                                    // 기본키
+    @GeneratedValue(strategy = IDENTITY)   // 1, 2, 3 … 자동 증가
+    private int id;
+
+    @Column(length = 200)                  // varchar(200)
+    private String subject;
+
+    @Column(columnDefinition = "TEXT")     // 길이 제한 없는 텍스트
+    private String content;
+
+    private LocalDateTime createDate;      // 컬럼 이름은 create_date
+}
+```
+
+**결과** H2 콘솔에서 `QUESTION` 테이블과 컬럼을 확인했습니다. 앞 단계에서 켠 SQL 로그에도 테이블 생성문이 찍힙니다.
+![QUESTION 테이블](docs/steps/004-01-1.jpg)
+![create table 로그](docs/steps/004-01-2.jpg)
+
+> **확인해 볼 것** `@Setter`는 지금은 편하지만, 009-02에서 생성자와 의미 있는 메서드로 바꿉니다(14168 방식).
