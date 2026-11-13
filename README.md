@@ -379,3 +379,44 @@ public abstract class BaseEntity {
 
 **결과** 두 테이블 모두 `CREATE_DATE`와 새 `MODIFY_DATE` 컬럼을 갖게 되었습니다.
 ![BaseEntity 컬럼](docs/steps/004-05-1.jpg)
+
+### 005-01 리포지터리, Repository와 샘플 데이터 자동 생성
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/005-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/005-01)
+
+**무엇을** 질문·답변 리포지터리를 만들고, 앱이 시작될 때 샘플 데이터(질문 2개, 답변 1개)를 자동으로 넣는 `TestInitData`를 만들었습니다.
+
+**왜** 교재는 테스트 코드로 데이터를 넣습니다. 여기서는 앱을 켤 때마다 같은 샘플 데이터가 보장되도록 `ApplicationRunner`를 씁니다(14163 14강).
+
+`QuestionRepository.java` (새 파일)
+```java
+// JpaRepository<엔티티, PK 타입>: save, findAll, findById, count, delete가 자동으로 생긴다.
+public interface QuestionRepository extends JpaRepository<Question, Integer> {
+}
+```
+
+`TestInitData.java` (새 파일, 핵심)
+```java
+@Configuration
+@RequiredArgsConstructor
+public class TestInitData {
+    @Autowired @Lazy
+    private TestInitData self;   // 자기 자신의 프록시
+
+    @Bean
+    public ApplicationRunner testInitDataApplicationRunner() {
+        return args -> self.work1();   // this.work1()이면 @Transactional이 안 걸린다
+    }
+
+    @Transactional
+    public void work1() {
+        if (questionRepository.count() > 0) return;   // 이미 있으면 건너뜀
+        // 질문 2개, 답변 1개 save
+    }
+}
+```
+
+**결과** DB에 샘플 데이터가 들어갔고, 로그를 보면 `work1()` **트랜잭션 하나 안에서** INSERT 3번이 실행됐습니다.
+![샘플 데이터](docs/steps/005-01-1.jpg)
+![트랜잭션 로그](docs/steps/005-01-2.jpg)
+
+> **확인해 볼 것** `self.work1()`을 `this.work1()`로 바꾸면 로그에서 `Getting transaction for [...TestInitData...work1]` 줄이 사라집니다. `@Transactional`은 프록시를 거쳐 호출될 때만 동작하기 때문입니다.
