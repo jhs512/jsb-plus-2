@@ -1616,3 +1616,39 @@ public SiteUser create(String username, String email, String password) {
 
 **결과**
 ![테스트](docs/steps/022-02-1.jpg)
+
+### 022-03 회원가입, 회원가입 폼과 기본 검증
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/022-03) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/022-03)
+
+**무엇을** 회원가입 폼(`/user/signup`)을 만들었습니다. 입력값은 `record UserCreateForm`과 검증 어노테이션으로 확인합니다.
+
+**왜** 교재 3-06. 질문 폼과 같은 방식(record + `@Valid` + 에러 프래그먼트)을 재사용합니다.
+
+`UserController.java` (새 파일, 핵심)
+```java
+public record UserCreateForm(
+        @NotBlank(message = "01-username-사용자ID는 필수항목입니다.")
+        @Size(min = 3, max = 25, message = "02-username-사용자ID는 3자 이상 25자 이하로 입력해주세요.")
+        String username,
+        @NotBlank(message = "04-password1-비밀번호는 필수항목입니다.")
+        String password1,
+        @NotBlank(message = "05-password2-비밀번호 확인은 필수항목입니다.")
+        String password2,
+        @NotBlank(message = "07-email-이메일은 필수항목입니다.")
+        @Email(message = "08-email-이메일 형식이 올바르지 않습니다.")
+        String email
+) {}
+
+@PostMapping("/signup")
+public String signup(@ModelAttribute("form") @Valid UserCreateForm form, BindingResult bindingResult) {
+    if (bindingResult.hasErrors()) return "signup_form";
+    userService.create(form.username(), form.email(), form.password1());
+    return "redirect:/";
+}
+```
+
+> 순번에 03, 06, 09가 비어 있는 이유: 다음 커밋에서 "중복 아이디(03)", "비밀번호 불일치(06)", "중복 이메일(09)" 검사를 그 자리에 넣습니다.
+
+**결과**
+![회원가입 링크](docs/steps/022-03-1.jpg)
+![검증 에러](docs/steps/022-03-2.jpg)
