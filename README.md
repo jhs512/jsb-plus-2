@@ -969,3 +969,25 @@ public String createAnswer(@PathVariable int id, @RequestParam("content") String
 ![ANSWER 테이블](docs/steps/012-02-2.jpg)
 
 > **확인해 볼 것** 리다이렉트 없이 `return "question_detail";`로 화면을 바로 그리면, 새로고침할 때 브라우저가 POST를 다시 보내 답변이 또 등록됩니다.
+
+### 012-03 답변 기능, 답변 개수와 목록 표시
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/012-03) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/012-03)
+
+**무엇을** 상세 화면에 답변 개수와 답변 목록을 보여 줍니다.
+
+**왜** `@OneToMany` 필드 덕분에 리포지터리 없이 `question.answers`로 답변 목록을 바로 꺼낼 수 있습니다(14163 9강, 교재 2-12).
+
+`question_detail.html`
+```diff
+  <div th:text="${question.content}">내용</div>
++
++ <h5 th:text="|${#lists.size(question.answers)}개의 답변이 있습니다.|">0개의 답변이 있습니다.</h5>
++ <ul>
++     <li th:each="answer : ${question.answers}" th:text="${answer.content}">답변 내용</li>
++ </ul>
+```
+
+**결과**
+![답변 목록](docs/steps/012-03-1.jpg)
+
+> **확인해 볼 것** `question.answers`는 LAZY입니다. 그런데도 템플릿에서 읽을 수 있는 이유는 스프링부트가 기본으로 켜 두는 OSIV(Open Session In View) 덕분에 화면을 그리는 동안 DB 연결이 유지되기 때문입니다.

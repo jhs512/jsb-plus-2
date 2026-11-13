@@ -1,6 +1,14 @@
 <h1 th:text="${question.subject}">제목</h1>
 <div th:text="${question.content}">내용</div>
 
+<!-- question.answers: OneToMany 필드라 answerRepository 없이 바로 꺼낼 수 있다. (14163 9강) -->
+<h5 th:text="|${#lists.size(question.answers)}개의 답변이 있습니다.|">0개의 답변이 있습니다.</h5>
+<div>
+    <ul>
+        <li th:each="answer : ${question.answers}" th:text="${answer.content}">답변 내용</li>
+    </ul>
+</div>
+
 <!-- 답변 작성 폼: 전송하면 POST /answer/create/{질문id} 요청이 발생한다. -->
 <form th:action="@{|/answer/create/${question.id}|}" method="post">
     <textarea name="content" id="content" rows="15"></textarea>

@@ -36,7 +36,9 @@ class QuestionControllerTest {
         mvc.perform(get("/question/detail/2"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("스프링부트 모델 질문입니다.")))
-                .andExpect(content().string(containsString("id는 자동으로 생성되나요?")));
+                .andExpect(content().string(containsString("id는 자동으로 생성되나요?")))
+                .andExpect(content().string(containsString("1개의 답변이 있습니다.")))
+                .andExpect(content().string(containsString("네 자동으로 생성됩니다.")));
     }
 
     @Test
