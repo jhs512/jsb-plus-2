@@ -1554,3 +1554,39 @@ public SecurityFilterChain filterChain(HttpSecurity http) {
 | 변경 전: 403 (021-03) | 변경 후: 302 |
 |---|---|
 | ![전](docs/steps/021-03-1.jpg) | ![후](docs/steps/021-04-1.jpg) |
+
+### 022-01 회원가입, SiteUser 엔티티와 UserRepository
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/022-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/022-01)
+
+**무엇을** 회원 정보를 저장할 `SiteUser` 엔티티와 `UserRepository`를 만들었습니다.
+
+**왜** 회원가입의 첫 단계입니다(교재 3-06). `user`는 많은 DB에서 예약어라서 테이블 이름이 충돌하지 않도록 `SiteUser`로 짓습니다. 아이디와 이메일은 중복될 수 없도록 DB에 UNIQUE 제약을 겁니다.
+
+`SiteUser.java` (새 파일)
+```java
+@Entity
+@Getter
+@NoArgsConstructor(access = PROTECTED)
+public class SiteUser extends BaseEntity {
+    @Column(unique = true)   // 같은 아이디로 두 번 가입할 수 없다 (DB 제약)
+    private String username;
+
+    private String password; // 암호화된 값만 저장한다
+
+    @Column(unique = true)
+    private String email;
+    // 생성자 ...
+}
+```
+
+`UserRepository.java` (새 파일)
+```java
+public interface UserRepository extends JpaRepository<SiteUser, Integer> {
+    Optional<SiteUser> findByUsername(String username);
+    boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
+}
+```
+
+**결과**
+![SITE_USER 테이블](docs/steps/022-01-1.jpg)
