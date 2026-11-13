@@ -1434,3 +1434,24 @@ public class DevInitData {
 ![N+1 로그](docs/steps/020-01-2.jpg)
 
 > **확인해 볼 것** 한 페이지에 100개를 보여 주면 쿼리가 101번 실행됩니다. 다음 커밋에서 줄입니다.
+
+### 020-02 답변 개수, default_batch_fetch_size로 N+1 완화
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/020-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/020-02)
+
+**무엇을** `default_batch_fetch_size: 100`을 설정해 N+1 문제를 줄였습니다.
+
+**왜** LAZY 컬렉션을 하나씩 조회하는 대신, 지금 필요한 질문들의 답변을 `IN (?, ?, …)`으로 **묶어서 한 번에** 조회합니다. 강의에는 없는 추가 개선입니다. 14163 13강에서 말한 "OneToMany는 유용하면 쓰되, 양이 많아지면 다른 방법을 고려"와 이어집니다.
+
+`application.yaml`
+```diff
+      use_sql_comments: true
++     default_batch_fetch_size: 100   # LAZY 컬렉션을 IN 절로 최대 100개씩 묶어서 조회
+```
+
+**결과**
+
+| 변경 전: answer 조회 10번 | 변경 후: 1번 |
+|---|---|
+| ![전](docs/steps/020-01-2.jpg) | ![후](docs/steps/020-02-1.jpg) |
+
+> **확인해 볼 것** 코드는 한 줄도 바꾸지 않았습니다. 같은 `question.answers`를 읽어도 설정 하나로 SQL이 달라집니다.
