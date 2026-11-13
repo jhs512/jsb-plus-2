@@ -10,11 +10,23 @@
         <div class="col-6">
             <!-- GET 폼: 검색은 조회이므로 GET. 전송하면 /question/list?kw=검색어 (page는 0부터 다시) -->
             <form th:action="@{/question/list}" method="get" class="input-group">
+                <input type="hidden" name="category" th:value="${category}">
                 <input type="text" name="kw" class="form-control" th:value="${kw}" placeholder="검색어">
                 <button class="btn btn-outline-secondary" type="submit">찾기</button>
             </form>
         </div>
     </div>
+    <!-- 카테고리 탭: 검색어(kw)는 유지, 페이지는 처음으로 -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${category == ''} ? 'active'"
+               th:href="@{/question/list(kw=${kw})}">전체</a>
+        </li>
+        <li class="nav-item" th:each="c : ${categories}">
+            <a class="nav-link" th:classappend="${category == c.code} ? 'active'"
+               th:href="@{/question/list(category=${c.code}, kw=${kw})}" th:text="${c.name}">질문답변</a>
+        </li>
+    </ul>
     <table class="table">
         <thead class="table-dark">
         <tr class="text-center">
@@ -31,6 +43,8 @@
             <td th:text="${paging.totalElements - (paging.number * paging.size) - loop.index}">1</td>
             <td>
                 <!-- @{...}: URL 생성, |...|: 문자열 안에 변수 치환 (14163 35강) -->
+                <span class="badge text-bg-light" th:if="${question.category != null}"
+                      th:text="${question.category.name}">질문답변</span>
                 <a th:href="@{|/question/detail/${question.id}|}" th:text="${question.subject}">제목</a>
                 <!-- 답변이 있을 때만 개수 표시 (교재 3-04) -->
                 <span class="text-danger small ms-2"
@@ -47,17 +61,17 @@
     <nav th:if="${!paging.isEmpty()}">
         <ul class="pagination justify-content-center">
             <li class="page-item" th:classappend="${!paging.hasPrevious} ? 'disabled'">
-                <a class="page-link" th:href="@{/question/list(page=${paging.number - 1}, kw=${kw})}">이전</a>
+                <a class="page-link" th:href="@{/question/list(page=${paging.number - 1}, kw=${kw}, category=${category})}">이전</a>
             </li>
             <!-- 현재 페이지 앞뒤로 5페이지씩만 보여준다. -->
             <li th:each="page : ${#numbers.sequence(0, paging.totalPages - 1)}"
                 th:if="${page >= paging.number - 5 and page <= paging.number + 5}"
                 th:classappend="${page == paging.number} ? 'active'"
                 class="page-item">
-                <a th:text="${page + 1}" class="page-link" th:href="@{/question/list(page=${page}, kw=${kw})}">1</a>
+                <a th:text="${page + 1}" class="page-link" th:href="@{/question/list(page=${page}, kw=${kw}, category=${category})}">1</a>
             </li>
             <li class="page-item" th:classappend="${!paging.hasNext} ? 'disabled'">
-                <a class="page-link" th:href="@{/question/list(page=${paging.number + 1}, kw=${kw})}">다음</a>
+                <a class="page-link" th:href="@{/question/list(page=${paging.number + 1}, kw=${kw}, category=${category})}">다음</a>
             </li>
         </ul>
     </nav>

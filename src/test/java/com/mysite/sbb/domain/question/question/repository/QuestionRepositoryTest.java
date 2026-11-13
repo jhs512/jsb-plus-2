@@ -105,7 +105,7 @@ class QuestionRepositoryTest {
     @Transactional
     void t10() {
         Question q = questionRepository.findById(1).get();
-        q.modify("수정된 제목", q.getContent());
+        q.modify(q.getCategory(), "수정된 제목", q.getContent());
         questionRepository.flush(); // UPDATE 를 지금 바로 실행 (로그로 확인용)
 
         assertThat(questionRepository.findById(1).get().getSubject()).isEqualTo("수정된 제목");
@@ -148,7 +148,7 @@ class QuestionRepositoryTest {
     }
 
     private List<Integer> search(String kw) {
-        Page<Question> page = questionRepository.findAllByKeyword(kw, PageRequest.of(0, 10));
+        Page<Question> page = questionRepository.findAllByKeyword(kw, null, PageRequest.of(0, 10));
         return page.getContent().stream().map(Question::getId).toList();
     }
 }

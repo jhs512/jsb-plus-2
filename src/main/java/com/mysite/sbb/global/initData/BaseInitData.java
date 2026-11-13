@@ -1,5 +1,6 @@
 package com.mysite.sbb.global.initData;
 
+import com.mysite.sbb.domain.question.category.entity.Category;
 import com.mysite.sbb.domain.question.category.service.CategoryService;
 import com.mysite.sbb.domain.question.question.entity.Question;
 import com.mysite.sbb.domain.question.question.repository.QuestionRepository;
@@ -38,7 +39,7 @@ public class BaseInitData {
         if (questionRepository.count() > 0) return; // 이미 있으면 다시 만들지 않는다.
 
         // 개발/테스트용 계정 (비밀번호 1234)
-        categoryService.create("qna", "질문답변");
+        Category qna = categoryService.create("qna", "질문답변");
         categoryService.create("free", "자유게시판");
         categoryService.create("lecture", "강좌");
 
@@ -46,10 +47,10 @@ public class BaseInitData {
         SiteUser user1 = userService.create("user1", "user1@test.com", "1234");
         SiteUser user2 = userService.create("user2", "user2@test.com", "1234");
 
-        Question q1 = new Question(user1, "sbb가 무엇인가요?", "sbb에 대해서 알고 싶습니다.");
+        Question q1 = new Question(user1, qna, "sbb가 무엇인가요?", "sbb에 대해서 알고 싶습니다.");
         questionRepository.save(q1);
 
-        Question q2 = new Question(user1, "스프링부트 모델 질문입니다.", "id는 자동으로 생성되나요?");
+        Question q2 = new Question(user1, qna, "스프링부트 모델 질문입니다.", "id는 자동으로 생성되나요?");
         q2.addAnswer(user2, "네 자동으로 생성됩니다.");
         questionRepository.save(q2); // q2를 저장할 때 answers에 있는 답변도 함께 INSERT (cascade PERSIST)
     }

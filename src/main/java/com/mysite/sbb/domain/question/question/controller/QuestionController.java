@@ -2,6 +2,8 @@ package com.mysite.sbb.domain.question.question.controller;
 
 import com.mysite.sbb.domain.question.answer.controller.AnswerController.AnswerForm;
 import com.mysite.sbb.domain.question.answer.service.AnswerService;
+import com.mysite.sbb.domain.question.category.entity.Category;
+import com.mysite.sbb.domain.question.category.service.CategoryService;
 import com.mysite.sbb.domain.question.question.entity.Question;
 import com.mysite.sbb.domain.question.question.service.QuestionService;
 import com.mysite.sbb.domain.user.user.service.UserService;
@@ -35,6 +37,7 @@ public class QuestionController {
     private final QuestionService questionService;
     private final UserService userService;
     private final AnswerService answerService;
+    private final CategoryService categoryService;
 
     // @ResponseBody가 없으므로 반환값 "question_list"는 템플릿 이름이 된다.
     // -> templates/question_list.html 을 렌더링한 HTML이 응답 본문이 된다. (14163 28강)
@@ -42,9 +45,12 @@ public class QuestionController {
     public String list(
             Model model,
             @RequestParam(defaultValue = "0") int page, // /question/list?page=2
-            @RequestParam(defaultValue = "") String kw // /question/list?kw=스프링
+            @RequestParam(defaultValue = "") String kw, // /question/list?kw=스프링
+            @RequestParam(defaultValue = "") String category // /question/list?category=qna (빈 값 = 전체)
     ) {
-        Page<Question> paging = questionService.getList(page, kw);
+        Category categoryEntity = category.isBlank() ? null : categoryService.getByCode(category);
+        Page<Question> paging = questionService.getList(page, kw, categoryEntity);
+        model.addAttribute("category", category);
         model.addAttribute("paging", paging); // 목록(paging.content)과 페이지 정보(총 페이지 수 등)를 함께 전달
         model.addAttribute("kw", kw); // 검색창에 검색어를 유지하기 위해
 
@@ -73,6 +79,9 @@ public class QuestionController {
     // 폼 데이터를 담는 객체. record: 생성자, getter, equals 등이 자동으로 생기는 불변 데이터 클래스 (14168 40강)
     // 메시지 형식 "순번-필드명-내용": 정렬해서 보여주고, 첫 번째 에러 필드에 focus 하기 위함 (14168 14, 15강)
     public record QuestionForm(
+            @NotBlank(message = "00-category-카테고리를 선택해주세요.")
+            String category,
+
             @NotBlank(message = "01-subject-제목은 필수항목입니다.")
             @Size(max = 200, message = "02-subject-제목은 200자 이하로 입력해주세요.")
             String subject,
@@ -100,7 +109,7 @@ public class QuestionController {
         // 검증 실패: 예외 대신 폼을 다시 보여준다. 입력값과 에러는 form, bindingResult에 담겨 있다.
         if (bindingResult.hasErrors()) return "question_form";
 
-        questionService.create(userService.getUser(principal.getName()), form.subject(), form.content());
+        questionService.create(userService.getUser(principal.getName()), categoryService.getByCode(form.category()), form.subject(), form.content());
 
         return "redirect:/question/list";
     }
@@ -120,7 +129,8 @@ public class QuestionController {
         Question question = getQuestionForAuthor(id, principal);
 
         // 등록 폼(question_form.html)을 재사용한다. 기존 값을 채운 폼 객체 + PUT 방식으로 전송하라는 표시
-        model.addAttribute("form", new QuestionForm(question.getSubject(), question.getContent()));
+        String categoryCode = question.getCategory() == null ? "" : question.getCategory().getCode();
+        model.addAttribute("form", new QuestionForm(categoryCode, question.getSubject(), question.getContent()));
         model.addAttribute("method", "PUT");
 
         return "question_form";
@@ -144,7 +154,7 @@ public class QuestionController {
             return "question_form";
         }
 
-        questionService.modify(question, form.subject(), form.content());
+        questionService.modify(question, categoryService.getByCode(form.category()), form.subject(), form.content());
 
         return "redirect:/question/detail/%d".formatted(id);
     }

@@ -1,6 +1,7 @@
 package com.mysite.sbb.domain.question.question.entity;
 
 import com.mysite.sbb.domain.question.answer.entity.Answer;
+import com.mysite.sbb.domain.question.category.entity.Category;
 import com.mysite.sbb.domain.question.comment.entity.Comment;
 import com.mysite.sbb.domain.user.user.entity.SiteUser;
 import com.mysite.sbb.global.jpa.entity.BaseEntity;
@@ -29,6 +30,10 @@ public class Question extends BaseEntity {
     @ManyToOne(fetch = LAZY)
     private SiteUser author;
 
+    // 카테고리 (도전과제 3-14). 질문(N) : 카테고리(1)
+    @ManyToOne(fetch = LAZY)
+    private Category category;
+
     // 추천인. 질문(N) : 회원(N) -> 중간 테이블이 필요하다. (교재 3-10)
     // Set: 같은 사람이 여러 번 추천해도 한 번만 들어간다.
     @ManyToMany
@@ -53,14 +58,16 @@ public class Question extends BaseEntity {
     private List<Answer> answers = new ArrayList<>();
 
     // @Setter 대신 "만들 때 필요한 값"을 생성자로 받는다. (14168)
-    public Question(SiteUser author, String subject, String content) {
+    public Question(SiteUser author, Category category, String subject, String content) {
         this.author = author;
+        this.category = category;
         this.subject = subject;
         this.content = content;
     }
 
     // 값을 바꾸는 경로를 의미 있는 메서드 하나로 제한한다. (14168 32강)
-    public void modify(String subject, String content) {
+    public void modify(Category category, String subject, String content) {
+        this.category = category;
         this.subject = subject;
         this.content = content;
     }

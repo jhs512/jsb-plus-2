@@ -1,5 +1,6 @@
 package com.mysite.sbb.domain.question.question.service;
 
+import com.mysite.sbb.domain.question.category.entity.Category;
 import com.mysite.sbb.domain.question.question.entity.Question;
 import com.mysite.sbb.domain.question.question.repository.QuestionRepository;
 import com.mysite.sbb.domain.user.user.entity.SiteUser;
@@ -24,8 +25,13 @@ public class QuestionService {
 
     // kw: 검색어. 빈 문자열이면 like '%%' 가 되어 전체 조회 (교재 3-13)
     public Page<Question> getList(int page, String kw) {
+        return getList(page, kw, null);
+    }
+
+    // category가 null이면 전체 카테고리
+    public Page<Question> getList(int page, String kw, Category category) {
         Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("createDate"), Sort.Order.desc("id")));
-        return questionRepository.findAllByKeyword(kw, pageable); // SELECT ... LIMIT 10 OFFSET page*10 + SELECT COUNT(*)
+        return questionRepository.findAllByKeyword(kw, category, pageable); // SELECT ... LIMIT 10 OFFSET page*10 + SELECT COUNT(*)
     }
 
     public Question getQuestion(int id) {
@@ -34,8 +40,8 @@ public class QuestionService {
                 .orElseThrow(() -> new DataNotFoundException("question not found"));
     }
 
-    public void modify(Question question, String subject, String content) {
-        question.modify(subject, content); // 트랜잭션 안이면 더티체킹으로 UPDATE, modifyDate는 Auditing이 갱신
+    public void modify(Question question, Category category, String subject, String content) {
+        question.modify(category, subject, content); // 트랜잭션 안이면 더티체킹으로 UPDATE, modifyDate는 Auditing이 갱신
     }
 
     public void delete(Question question) {
@@ -43,6 +49,10 @@ public class QuestionService {
     }
 
     public Question create(SiteUser author, String subject, String content) {
-        return questionRepository.save(new Question(author, subject, content));
+        return create(author, null, subject, content);
+    }
+
+    public Question create(SiteUser author, Category category, String subject, String content) {
+        return questionRepository.save(new Question(author, category, subject, content));
     }
 }

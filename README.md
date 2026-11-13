@@ -2514,3 +2514,46 @@ public class Category extends BaseEntity {
 
 **결과**
 ![CATEGORY](docs/steps/032-01-1.jpg)
+
+### 032-02 카테고리, 질문 카테고리 연결과 목록 필터
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/032-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/032-02)
+
+**무엇을** 질문에 카테고리를 연결했습니다. 질문 폼에서 카테고리를 고르고(필수), 목록은 카테고리 탭으로 걸러 보고, 내비게이션 바에도 카테고리 메뉴를 넣었습니다.
+
+**왜** 도전과제 3-14 "카테고리". 목록 필터는 검색 JPQL에 조건 하나를 더하는 것으로 해결합니다. `category`가 null이면 전체 카테고리입니다.
+
+`Question.java`
+```diff
++ @ManyToOne(fetch = LAZY)
++ private Category category;   // 질문(N) : 카테고리(1)
+```
+
+`QuestionRepository.java`
+```diff
+  where
++     (:category is null or q.category = :category)
++     and (
+          q.subject like %:kw%
+          ...
++     )
+```
+
+`GlobalModelAttribute.java`
+```java
+@ModelAttribute("categories")   // 내비게이션 바, 질문 폼에서 사용
+public List<Category> categories() { return categoryService.getAll(); }
+```
+
+`question_form.html`
+```html
+<select th:field="*{category}" class="form-select">   <!-- 현재 값에 selected 자동 -->
+    <option value="">카테고리 선택</option>
+    <option th:each="c : ${categories}" th:value="${c.code}" th:text="${c.name}">질문답변</option>
+</select>
+```
+
+**결과**
+![카테고리 탭](docs/steps/032-02-1.jpg)
+![카테고리 select](docs/steps/032-02-2.jpg)
+
+> **확인해 볼 것** 탭을 눌러도 검색어(`kw`)는 유지되고, 페이지는 처음으로 돌아갑니다. 링크 하나에 `category`, `kw`, `page`를 함께 넣기 때문입니다.

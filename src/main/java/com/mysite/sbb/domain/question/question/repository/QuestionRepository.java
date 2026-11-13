@@ -1,5 +1,6 @@
 package com.mysite.sbb.domain.question.question.repository;
 
+import com.mysite.sbb.domain.question.category.entity.Category;
 import com.mysite.sbb.domain.question.question.entity.Question;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,11 +38,14 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             left join q.author u1
             left join q.answers a
             left join a.author u2
-            where q.subject like %:kw%
-               or q.content like %:kw%
-               or u1.username like %:kw%
-               or a.content like %:kw%
-               or u2.username like %:kw%
+            where (:category is null or q.category = :category)
+              and (
+                    q.subject like %:kw%
+                 or q.content like %:kw%
+                 or u1.username like %:kw%
+                 or a.content like %:kw%
+                 or u2.username like %:kw%
+              )
             """)
-    Page<Question> findAllByKeyword(@Param("kw") String kw, Pageable pageable);
+    Page<Question> findAllByKeyword(@Param("kw") String kw, @Param("category") Category category, Pageable pageable);
 }

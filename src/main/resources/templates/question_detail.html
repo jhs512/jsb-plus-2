@@ -4,7 +4,11 @@
 </head>
 <div layout:fragment="content" class="container my-3">
     <!-- 질문 -->
-    <h2 class="border-bottom py-2" th:text="${question.subject}">제목</h2>
+    <h2 class="border-bottom py-2">
+        <span class="badge text-bg-light fs-6 align-middle" th:if="${question.category != null}"
+              th:text="${question.category.name}">질문답변</span>
+        <span th:text="${question.subject}">제목</span>
+    </h2>
     <div class="card my-3">
         <div class="card-body">
             <!-- white-space: pre-line -> 입력한 줄바꿈을 그대로 보여준다. (14168 29강) -->

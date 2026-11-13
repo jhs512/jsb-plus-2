@@ -12,6 +12,9 @@
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/question/list}">질문 목록</a>
                 </li>
+                <li class="nav-item" th:each="c : ${categories}">
+                    <a class="nav-link" th:href="@{/question/list(category=${c.code})}" th:text="${c.name}">질문답변</a>
+                </li>
             </ul>
             <ul class="navbar-nav mb-2 mb-lg-0">
                 <!-- sec:authorize: 로그인 상태에 따라 보이는 메뉴가 달라진다. (thymeleaf-extras-springsecurity) -->

@@ -14,6 +14,15 @@
         <!-- 검증 에러 메시지 (정렬 + 첫 에러 필드 focus) -->
         <th:block th:replace="~{form_errors :: formErrorsFragment}"></th:block>
         <div class="mb-3">
+            <label class="form-label w-100">카테고리
+                <!-- th:field가 현재 값과 같은 option에 selected를 붙여 준다. -->
+                <select th:field="*{category}" class="form-select">
+                    <option value="">카테고리 선택</option>
+                    <option th:each="c : ${categories}" th:value="${c.code}" th:text="${c.name}">질문답변</option>
+                </select>
+            </label>
+        </div>
+        <div class="mb-3">
             <label class="form-label w-100">제목
                 <!-- th:field: name, id, value 속성을 자동으로 채워 준다. 검증 실패 시 입력값이 유지된다. -->
                 <input type="text" th:field="*{subject}" class="form-control" autofocus>

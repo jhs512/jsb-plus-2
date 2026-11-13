@@ -78,6 +78,7 @@ class QuestionControllerTest {
     @DisplayName("POST /question/create -> 저장 후 목록으로 리다이렉트")
     void t5() throws Exception {
         mvc.perform(post("/question/create").with(csrf())
+                        .param("category", "qna")
                         .param("subject", "새 질문 제목")
                         .param("content", "새 질문 내용"))
                 .andExpect(status().isFound())
@@ -128,6 +129,7 @@ class QuestionControllerTest {
     @DisplayName("등록한 질문의 글쓴이는 로그인한 사용자")
     void t9() throws Exception {
         mvc.perform(post("/question/create").with(csrf())
+                .param("category", "qna")
                 .param("subject", "글쓴이 테스트")
                 .param("content", "내용"));
 
@@ -149,6 +151,7 @@ class QuestionControllerTest {
     @DisplayName("PUT /question/modify/1 (본인) -> 수정 후 상세로")
     void t11() throws Exception {
         mvc.perform(put("/question/modify/1").with(csrf())
+                        .param("category", "free")
                         .param("subject", "수정된 제목")
                         .param("content", "수정된 내용"))
                 .andExpect(status().isFound())
@@ -162,6 +165,7 @@ class QuestionControllerTest {
     void t12() throws Exception {
         mvc.perform(post("/question/modify/1").with(csrf())
                         .param("_method", "PUT")
+                        .param("category", "qna")
                         .param("subject", "히든 메서드로 수정")
                         .param("content", "내용"))
                 .andExpect(redirectedUrl("/question/detail/1"));
@@ -172,6 +176,7 @@ class QuestionControllerTest {
     @WithUserDetails("user2")
     void t13() throws Exception {
         mvc.perform(put("/question/modify/1").with(csrf())
+                        .param("category", "qna")
                         .param("subject", "남의 글")
                         .param("content", "내용"))
                 .andExpect(status().isForbidden());
@@ -210,5 +215,18 @@ class QuestionControllerTest {
                 .andExpect(content().string(org.hamcrest.Matchers.not(containsString("sbb가 무엇인가요?"))))
                 .andExpect(content().string(containsString("value=\"user2\"")))
                 .andExpect(content().string(containsString("/question/list?page=0&amp;kw=user2")));
+    }
+
+    @Test
+    @DisplayName("카테고리 필터: qna에는 샘플 질문, free에는 없음, 수정 시 카테고리 변경")
+    void t18() throws Exception {
+        mvc.perform(get("/question/list").param("category", "qna"))
+                .andExpect(content().string(containsString("sbb가 무엇인가요?")));
+        mvc.perform(get("/question/list").param("category", "free"))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("sbb가 무엇인가요?"))));
+
+        mvc.perform(put("/question/modify/1").with(csrf())
+                .param("category", "free").param("subject", "자유게시판으로 이동").param("content", "내용"));
+        org.assertj.core.api.Assertions.assertThat(questionService.getQuestion(1).getCategory().getCode()).isEqualTo("free");
     }
 }
