@@ -1,5 +1,6 @@
 package com.mysite.sbb.domain.question.question.controller;
 
+import com.mysite.sbb.domain.question.answer.controller.AnswerController.AnswerForm;
 import com.mysite.sbb.domain.question.question.entity.Question;
 import com.mysite.sbb.domain.question.question.service.QuestionService;
 import jakarta.validation.Valid;
@@ -35,7 +36,11 @@ public class QuestionController {
 
     // {id} 자리의 값이 @PathVariable int id 로 들어온다. 예) /question/detail/2 -> id = 2
     @GetMapping("/detail/{id}")
-    public String detail(Model model, @PathVariable int id) {
+    public String detail(
+            Model model,
+            @PathVariable int id,
+            @ModelAttribute("answerForm") AnswerForm answerForm // 답변 폼(th:object)에 쓸 빈 객체
+    ) {
         Question question = questionService.getQuestion(id);
         model.addAttribute("question", question);
 

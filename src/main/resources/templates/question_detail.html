@@ -32,8 +32,9 @@
         </div>
     </div>
     <!-- 답변 작성 폼: 전송하면 POST /answer/create/{질문id} 요청이 발생한다. -->
-    <form th:action="@{|/answer/create/${question.id}|}" method="post" class="my-3">
-        <textarea name="content" id="content" rows="10" class="form-control"></textarea>
+    <form th:action="@{|/answer/create/${question.id}|}" th:object="${answerForm}" method="post" class="my-3">
+        <th:block th:replace="~{form_errors :: formErrorsFragment}"></th:block>
+        <textarea th:field="*{content}" rows="10" class="form-control"></textarea>
         <input type="submit" value="답변등록" class="btn btn-primary my-2">
     </form>
 </div>

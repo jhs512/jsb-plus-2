@@ -1255,3 +1255,40 @@ public String create(@ModelAttribute("form") @Valid QuestionForm form,
 | ![전](docs/steps/016-04-1.jpg) | ![후](docs/steps/016-05-1.jpg) |
 
 > **교재와 다른 점** 교재에는 없는 기능입니다. 강사 방식을 이 구조에 맞게 고쳤습니다. 1차 구현에서는 고친 결과만 남겼는데, 이번에는 실패(016-04)와 개선(016-05)을 나눠 남겼습니다.
+
+### 016-06 질문 등록, 답변 폼에도 검증
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/016-06) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/016-06)
+
+**무엇을** 답변 폼에도 같은 방식(`record AnswerForm` + `@Valid` + 에러 프래그먼트)으로 검증을 넣었습니다.
+
+**왜** 빈 답변이 저장되지 않도록 서버에서 반드시 검증합니다(14168 35강). 검증에 실패하면 상세 화면을 다시 그려야 해서 `question`도 모델에 담습니다.
+
+`AnswerController.java`
+```diff
++ public record AnswerForm(
++         @NotBlank(message = "01-content-내용은 필수항목입니다.")
++         String content
++ ) {}
+
+  public String createAnswer(@PathVariable int id,
+-                            @RequestParam("content") String content) {
++                            @ModelAttribute("answerForm") @Valid AnswerForm answerForm,
++                            BindingResult bindingResult, Model model) {
+      Question question = questionService.getQuestion(id);
++     if (bindingResult.hasErrors()) {
++         model.addAttribute("question", question);   // 상세 화면을 다시 그리려면 필요
++         return "question_detail";
++     }
+```
+
+`question_detail.html`
+```diff
+- <form th:action="@{|/answer/create/${question.id}|}" method="post" class="my-3">
+-     <textarea name="content" id="content" rows="10" class="form-control"></textarea>
++ <form th:action="@{|/answer/create/${question.id}|}" th:object="${answerForm}" method="post" class="my-3">
++     <th:block th:replace="~{form_errors :: formErrorsFragment}"></th:block>
++     <textarea th:field="*{content}" rows="10" class="form-control"></textarea>
+```
+
+**결과**
+![답변 검증](docs/steps/016-06-1.jpg)
