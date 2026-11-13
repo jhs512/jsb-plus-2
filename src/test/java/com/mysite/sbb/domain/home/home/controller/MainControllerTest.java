@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
@@ -20,11 +21,11 @@ class MainControllerTest {
     private MockMvc mvc;
 
     @Test
-    @DisplayName("GET / -> 200, SBB")
+    @DisplayName("GET / -> 302, /question/list 로 리다이렉트")
     void t1() throws Exception {
         mvc.perform(get("/"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("SBB"));
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/question/list"));
     }
 
     @Test

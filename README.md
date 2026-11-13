@@ -694,3 +694,34 @@ public String list() {
 
 **결과**
 ![표 목록](docs/steps/007-03-1.jpg)
+
+### 008-01 루트 URL, / 접속 시 질문 목록으로 리다이렉트
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/008-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/008-01)
+
+**무엇을** `/`로 들어오면 질문 목록(`/question/list`)으로 보냅니다.
+
+**왜** 사이트의 첫 화면을 질문 목록으로 합니다(교재 2-08). `redirect:`는 서버가 다른 화면을 대신 그리는 것이 아니라, 브라우저에게 **"이 주소로 다시 요청해"**(302 + `Location` 헤더)라고 알려 주는 것입니다(14168 28강).
+
+`MainController.java`
+```diff
+  @GetMapping("/")
+- @ResponseBody
+- public String index() {
+-     return "SBB";
+- }
++ public String index() {
++     return "redirect:/question/list";
++ }
+```
+
+`MainControllerTest.java`
+```java
+mvc.perform(get("/"))
+        .andExpect(status().isFound())                    // 302
+        .andExpect(redirectedUrl("/question/list"));
+```
+
+**결과** 화면만 보면 그냥 목록입니다. 하지만 네트워크 탭을 보면 요청이 **두 번** 오갔습니다. `/`는 302를 받고, 브라우저가 `Location`의 주소로 다시 요청했습니다.
+![302 리다이렉트](docs/steps/008-01-1.jpg)
+
+> **확인해 볼 것** 브라우저 개발자 도구(F12) → Network 탭 → `Preserve log`를 체크하고 `/`에 접속하면 같은 모습을 볼 수 있습니다(14168 28강).
