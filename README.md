@@ -1851,3 +1851,44 @@ document.querySelectorAll("a[method]").forEach((anchor) => {
 **결과** 로그아웃은 링크인데도 네트워크 탭에는 `POST /user/logout`(폼 데이터 `_csrf`)으로 나갑니다.
 ![로그아웃 링크](docs/steps/025-01-1.jpg)
 ![POST로 전송](docs/steps/025-01-2.jpg)
+
+### 025-02 수정과 삭제, 질문 수정(PUT)과 403
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/025-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/025-02)
+
+**무엇을** 질문 수정을 만들었습니다. 수정 폼(`GET /question/modify/{id}`)은 등록 폼을 재사용하고, 저장은 **PUT**(`PUT /question/modify/{id}`)으로 받습니다. 본인 글이 아니면 **403**입니다.
+
+**왜** 교재 3-09. 교재는 수정을 POST로 받지만, "수정"의 의미에 맞는 PUT을 씁니다(14168 41강). 권한이 없을 때 교재는 400(BAD_REQUEST)을 주지만, "권한 없음"은 403(FORBIDDEN)이 정확합니다(강의 외 추가 개선).
+
+`QuestionController.java` (핵심)
+```java
+private Question getQuestionForAuthor(int id, Principal principal) {
+    Question question = questionService.getQuestion(id);
+    if (!question.isAuthor(userService.getUser(principal.getName()))) {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
+    }
+    return question;
+}
+
+@PreAuthorize("isAuthenticated()")
+@PutMapping("/modify/{id}")
+@Transactional   // 메서드가 끝날 때 변경 감지로 UPDATE
+public String modify(@PathVariable int id, @ModelAttribute("form") @Valid QuestionForm form,
+                     BindingResult bindingResult, Principal principal, Model model) {
+    Question question = getQuestionForAuthor(id, principal);
+    // ...
+    questionService.modify(question, form.subject(), form.content());   // question.modify(...)
+    return "redirect:/question/detail/%d".formatted(id);
+}
+```
+
+`question_form.html`
+```diff
++ <!-- 수정 화면일 때만 _method=PUT (등록과 수정이 같은 템플릿) -->
++ <input type="hidden" name="_method" th:if="${method}" th:value="${method}">
+```
+
+**결과**
+![수정 버튼](docs/steps/025-02-1.jpg)
+![수정 폼](docs/steps/025-02-2.jpg)
+![PUT 302](docs/steps/025-02-3.jpg)
+![남의 글 403](docs/steps/025-02-4.jpg)

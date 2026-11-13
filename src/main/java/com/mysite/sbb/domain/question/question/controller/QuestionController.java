@@ -9,16 +9,20 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 
@@ -89,5 +93,49 @@ public class QuestionController {
         questionService.create(userService.getUser(principal.getName()), form.subject(), form.content());
 
         return "redirect:/question/list";
+    }
+
+    // 본인 글이 아니면 403 Forbidden. 교재는 400(BAD_REQUEST)이지만 "권한 없음"은 403이 의미상 정확하다.
+    private Question getQuestionForAuthor(int id, Principal principal) {
+        Question question = questionService.getQuestion(id);
+        if (!question.isAuthor(userService.getUser(principal.getName()))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
+        }
+        return question;
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/modify/{id}")
+    public String showModify(@PathVariable int id, Principal principal, Model model) {
+        Question question = getQuestionForAuthor(id, principal);
+
+        // 등록 폼(question_form.html)을 재사용한다. 기존 값을 채운 폼 객체 + PUT 방식으로 전송하라는 표시
+        model.addAttribute("form", new QuestionForm(question.getSubject(), question.getContent()));
+        model.addAttribute("method", "PUT");
+
+        return "question_form";
+    }
+
+    // 수정은 PUT (교재는 POST /question/modify/{id}) - PLAN 결정 2
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping("/modify/{id}")
+    @Transactional // 메서드가 끝날 때 더티체킹으로 UPDATE
+    public String modify(
+            @PathVariable int id,
+            @ModelAttribute("form") @Valid QuestionForm form,
+            BindingResult bindingResult,
+            Principal principal,
+            Model model
+    ) {
+        Question question = getQuestionForAuthor(id, principal);
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("method", "PUT");
+            return "question_form";
+        }
+
+        questionService.modify(question, form.subject(), form.content());
+
+        return "redirect:/question/detail/%d".formatted(id);
     }
 }

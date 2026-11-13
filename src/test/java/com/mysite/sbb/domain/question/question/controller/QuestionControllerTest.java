@@ -17,6 +17,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -133,4 +134,46 @@ class QuestionControllerTest {
                 questionService.getList(0).getContent().get(0).getAuthor().getUsername()
         ).isEqualTo("user1");
     }
+
+    @Test
+    @DisplayName("수정 폼: 기존 값이 채워지고 _method=PUT 포함")
+    void t10() throws Exception {
+        mvc.perform(get("/question/modify/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("sbb가 무엇인가요?")))
+                .andExpect(content().string(containsString("name=\"_method\" value=\"PUT\"")));
+    }
+
+    @Test
+    @DisplayName("PUT /question/modify/1 (본인) -> 수정 후 상세로")
+    void t11() throws Exception {
+        mvc.perform(put("/question/modify/1").with(csrf())
+                        .param("subject", "수정된 제목")
+                        .param("content", "수정된 내용"))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/question/detail/1"));
+
+        org.assertj.core.api.Assertions.assertThat(questionService.getQuestion(1).getSubject()).isEqualTo("수정된 제목");
+    }
+
+    @Test
+    @DisplayName("POST + _method=PUT 도 PUT으로 처리된다 (HiddenHttpMethodFilter)")
+    void t12() throws Exception {
+        mvc.perform(post("/question/modify/1").with(csrf())
+                        .param("_method", "PUT")
+                        .param("subject", "히든 메서드로 수정")
+                        .param("content", "내용"))
+                .andExpect(redirectedUrl("/question/detail/1"));
+    }
+
+    @Test
+    @DisplayName("남의 글 수정 -> 403")
+    @WithUserDetails("user2")
+    void t13() throws Exception {
+        mvc.perform(put("/question/modify/1").with(csrf())
+                        .param("subject", "남의 글")
+                        .param("content", "내용"))
+                .andExpect(status().isForbidden());
+    }
+
 }

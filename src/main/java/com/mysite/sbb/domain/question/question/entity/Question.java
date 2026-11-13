@@ -51,6 +51,11 @@ public class Question extends BaseEntity {
         this.content = content;
     }
 
+    // 글쓴이 확인. author.getId()는 LAZY 프록시를 초기화하지 않고도 읽을 수 있다.
+    public boolean isAuthor(SiteUser user) {
+        return user != null && author != null && author.getId() == user.getId();
+    }
+
     // 답변 생성을 Question에게 맡긴다. answerRepository.save 없이도
     // cascade PERSIST 덕분에 트랜잭션이 끝날 때 자동 INSERT 된다. (14163 21강)
     public Answer addAnswer(SiteUser author, String content) {
