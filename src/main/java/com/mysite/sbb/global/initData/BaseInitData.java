@@ -8,6 +8,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.annotation.Order;
 import org.springframework.transaction.annotation.Transactional;
 
 // 앱이 시작되자마자 샘플 데이터를 만든다. (14163 14강, 14168 2강)
@@ -22,6 +23,7 @@ public class BaseInitData {
     private final QuestionRepository questionRepository;
 
     @Bean
+    @Order(1)
     public ApplicationRunner baseInitDataApplicationRunner() {
         return args -> self.work1();
     }

@@ -1359,3 +1359,37 @@ public String create(@ModelAttribute("form") @Valid QuestionForm form,
 **결과** SQL 로그를 보면 `offset ? rows fetch first ? rows only`로 10개만 가져옵니다. 데이터가 2건뿐이라 화면에는 1페이지만 보입니다.
 ![페이징 버튼](docs/steps/018-01-1.jpg)
 ![페이징 SQL](docs/steps/018-01-2.jpg)
+
+### 018-02 페이징, 개발용 대량 데이터(DevInitData)
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/018-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/018-02)
+
+**무엇을** 개발(dev) 환경에서만 질문 300개를 자동으로 만드는 `DevInitData`를 추가했습니다.
+
+**왜** 페이징은 데이터가 많아야 눈으로 확인됩니다(교재 3-02). 교재는 테스트 코드로 개발 DB에 300개를 넣지만, 이 프로젝트는 test와 dev 프로파일을 나눴으므로 **dev 전용 초기 데이터**로 만듭니다. 테스트(test)는 그대로 샘플 2건만 씁니다.
+
+`DevInitData.java` (새 파일, 핵심)
+```java
+@Profile("dev")   // dev 프로파일에서만 등록되는 빈
+@Configuration
+public class DevInitData {
+    @Bean
+    @Order(2)     // BaseInitData(샘플 2개, @Order(1)) 다음에 실행
+    public ApplicationRunner devInitDataApplicationRunner() {
+        return args -> self.work1();
+    }
+
+    @Transactional
+    public void work1() {
+        if (questionRepository.count() > 2) return;
+        for (int i = 1; i <= 300; i++) {
+            questionRepository.save(new Question("테스트 데이터입니다:[%03d]".formatted(i), "내용무"));
+        }
+    }
+}
+```
+
+**결과** 목록에 최신 10건이 보이고, 페이지 번호가 생겼습니다. 이제 전체 개수를 세는 COUNT 쿼리도 실행됩니다.
+![300건 페이징](docs/steps/018-02-1.jpg)
+![COUNT 쿼리](docs/steps/018-02-2.jpg)
+
+> **확인해 볼 것** 번호 열이 페이지마다 1부터 다시 시작합니다. 다음 커밋에서 전체 기준 번호로 바꿉니다.
