@@ -2413,3 +2413,51 @@ public boolean deleteComment(Comment comment) { return comments.remove(comment);
 
 **결과**
 ![COMMENT 테이블](docs/steps/031-01-1.jpg)
+
+### 031-02 댓글, 질문·답변 댓글 작성과 검증
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/031-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/031-02)
+
+**무엇을** 질문과 답변 아래에 댓글 목록과 작성 폼을 붙였습니다. 빈 댓글은 자바스크립트로 먼저 막고, 서버에서도 다시 검증합니다.
+
+**왜** 도전과제 3-14 "댓글". 클라이언트 검증은 쓸데없는 페이지 이동 없이 바로 알려 주는 **편의**이고, 서버 검증은 JS를 끄거나 우회한 요청까지 막는 **필수**입니다(14168 35·36강).
+
+`comment_fragment.html` (새 파일, 질문·답변 공용, 핵심)
+```html
+<div th:fragment="commentsFragment(parent, createUrl)">
+    <li th:each="comment : ${parent.comments}" th:text="${comment.content}">댓글</li>
+    <form sec:authorize="isAuthenticated()" th:action="${createUrl}" method="post"
+          onsubmit="Comment__submitWriteForm(this); return false;">
+        <input type="text" name="content" placeholder="댓글 달기" maxlength="500">
+    </form>
+</div>
+```
+
+`global.js`
+```js
+function Comment__submitWriteForm(form) {
+    form.content.value = form.content.value.trim();
+    if (form.content.value.length === 0) {
+        alert("댓글 내용을 입력해주세요.");
+        form.content.focus();
+        return;              // 전송하지 않음
+    }
+    form.submit();
+}
+```
+
+`CommentController.java` (핵심)
+```java
+public record CommentForm(@NotBlank @Size(max = 500) String content) {}
+
+@PostMapping("/create/question/{id}")
+@Transactional
+public String createForQuestion(@PathVariable int id, @Valid CommentForm form, Principal principal) {
+    questionService.getQuestion(id).addComment(userService.getUser(principal.getName()), form.content());
+    return "redirect:/question/detail/%d".formatted(id);
+}
+// 답변 댓글: /create/answer/{id} → 답변 위치(#answer_{id})로
+```
+
+**결과**
+![댓글](docs/steps/031-02-1.jpg)
+![빈 댓글 차단](docs/steps/031-02-2.jpg)

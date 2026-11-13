@@ -56,3 +56,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+// 댓글 작성 폼 클라이언트 검증 (14168 35강). 서버에서도 반드시 다시 검증한다.
+function Comment__submitWriteForm(form) {
+    form.content.value = form.content.value.trim();
+
+    if (form.content.value.length === 0) {
+        alert("댓글 내용을 입력해주세요.");
+        form.content.focus();
+        return;
+    }
+
+    form.submit();
+}

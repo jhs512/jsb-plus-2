@@ -39,6 +39,7 @@
                    onclick="return confirm('정말로 삭제하시겠습니까?');"
                    class="btn btn-sm btn-outline-secondary">삭제</a>
             </div>
+            <div th:replace="~{comment_fragment :: commentsFragment(${question}, @{|/comment/create/question/${question.id}|})}"></div>
         </div>
     </div>
     <!-- 답변 개수 -->
@@ -87,6 +88,7 @@
                    onclick="return confirm('정말로 삭제하시겠습니까?');"
                    class="btn btn-sm btn-outline-secondary">삭제</a>
             </div>
+            <div th:replace="~{comment_fragment :: commentsFragment(${answer}, @{|/comment/create/answer/${answer.id}|})}"></div>
         </div>
     </div>
     <!-- 답변 페이징 -->
