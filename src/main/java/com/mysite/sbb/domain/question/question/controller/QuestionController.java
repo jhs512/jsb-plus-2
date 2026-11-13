@@ -39,10 +39,12 @@ public class QuestionController {
     @GetMapping("/list")
     public String list(
             Model model,
-            @RequestParam(defaultValue = "0") int page // /question/list?page=2
+            @RequestParam(defaultValue = "0") int page, // /question/list?page=2
+            @RequestParam(defaultValue = "") String kw // /question/list?kw=스프링
     ) {
-        Page<Question> paging = questionService.getList(page);
+        Page<Question> paging = questionService.getList(page, kw);
         model.addAttribute("paging", paging); // 목록(paging.content)과 페이지 정보(총 페이지 수 등)를 함께 전달
+        model.addAttribute("kw", kw); // 검색창에 검색어를 유지하기 위해
 
         return "question_list";
     }

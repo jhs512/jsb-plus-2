@@ -2288,3 +2288,35 @@ Page<Question> findAllByKeyword(@Param("kw") String kw, Pageable pageable);
 **결과** 테스트로 다섯 가지 검색 대상을 모두 확인했고, 로그에서 JPQL이 실제 SQL로 바뀐 모습을 볼 수 있습니다.
 ![테스트](docs/steps/029-01-1.jpg)
 ![JPQL과 SQL](docs/steps/029-01-2.jpg)
+
+### 029-02 검색, 검색창과 검색어 유지 페이징
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/029-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/029-02)
+
+**무엇을** 목록 위에 검색창을 만들고, 페이지를 옮겨도 검색어가 유지되도록 했습니다.
+
+**왜** 교재 3-13. 교재는 숨은 폼과 자바스크립트로 `page`와 `kw`를 함께 보냅니다. 검색은 조회라서 **GET 폼**이면 충분하고, 페이지 링크는 타임리프의 URL 파라미터 문법이 인코딩까지 처리해 줍니다.
+
+`question_list.html`
+```html
+<form th:action="@{/question/list}" method="get" class="input-group">
+    <input type="text" name="kw" class="form-control" th:value="${kw}" placeholder="검색어">
+    <button class="btn btn-outline-secondary" type="submit">찾기</button>
+</form>
+```
+```diff
+- <a class="page-link" th:href="@{|?page=${page}|}">
++ <a class="page-link" th:href="@{/question/list(page=${page}, kw=${kw})}">   <!-- 검색어 유지 -->
+```
+
+`QuestionController.java`
+```diff
+- public String list(Model model, @RequestParam(defaultValue = "0") int page) {
+-     Page<Question> paging = questionService.getList(page);
++ public String list(Model model, @RequestParam(defaultValue = "0") int page,
++                    @RequestParam(defaultValue = "") String kw) {
++     Page<Question> paging = questionService.getList(page, kw);
++     model.addAttribute("kw", kw);   // 검색창에 검색어 유지
+```
+
+**결과**
+![검색](docs/steps/029-02-1.jpg)

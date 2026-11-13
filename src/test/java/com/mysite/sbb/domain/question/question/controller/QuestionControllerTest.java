@@ -201,4 +201,14 @@ class QuestionControllerTest {
 
         org.assertj.core.api.Assertions.assertThat(questionService.getQuestion(1).getVoters()).hasSize(1);
     }
+
+    @Test
+    @DisplayName("GET /question/list?kw=user2 -> 검색 결과와 검색어 유지")
+    void t17() throws Exception {
+        mvc.perform(get("/question/list").param("kw", "user2"))
+                .andExpect(content().string(containsString("스프링부트 모델 질문입니다.")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("sbb가 무엇인가요?"))))
+                .andExpect(content().string(containsString("value=\"user2\"")))
+                .andExpect(content().string(containsString("/question/list?page=0&amp;kw=user2")));
+    }
 }
