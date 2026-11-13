@@ -2151,3 +2151,21 @@ public class MarkdownService {
 
 **결과**
 ![테스트](docs/steps/028-01-1.jpg)
+
+### 028-02 마크다운, [실험] 교재의 ${@빈.메서드()} 호출은 Thymeleaf 3.1.5에서 막힌다
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/028-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/028-02)
+
+**무엇을** 교재 방식 그대로, 템플릿에서 `${@markdownService.render(...)}`로 빈을 직접 호출해 본문을 마크다운으로 출력했습니다. **(실험 커밋, 이 커밋에서는 상세 화면 테스트 2건이 실패합니다)**
+
+**왜** 교재 3-12는 `th:utext="${@commonUtil.markdown(question.content)}"`처럼 템플릿에서 스프링 빈을 바로 부릅니다. 이 프로젝트의 Thymeleaf(3.1.5)에서도 되는지 확인합니다.
+
+`question_detail.html`
+```diff
+- <div class="card-text" style="white-space: pre-line;" th:text="${question.content}">내용</div>
++ <div class="card-text" th:utext="${@markdownService.render(question.content)}">내용</div>
+```
+
+**결과** 상세 화면이 **500**입니다. Thymeleaf 3.1.5는 보안상 템플릿 안에서 `@빈` 참조로 메서드를 호출하는 것을 막습니다(`TemplateProcessingException: ... is forbidden in this context`).
+![500](docs/steps/028-02-1.jpg)
+
+> **확인해 볼 것** 다음 커밋에서 빈을 템플릿이 직접 부르지 않고, 컨트롤러 쪽에서 모델에 넣어 주는 방식으로 바꿉니다.
