@@ -26,9 +26,7 @@ class AnswerRepositoryTest {
     void t1() {
         Question q2 = questionRepository.findById(2).get();
 
-        Answer answer = new Answer();
-        answer.setContent("답변 by answerRepository");
-        answer.setQuestion(q2);
+        Answer answer = new Answer(q2, "답변 by answerRepository");
         answerRepository.save(answer);
 
         assertThat(answer.getId()).isGreaterThan(0); // save 하자마자 INSERT -> id 생성

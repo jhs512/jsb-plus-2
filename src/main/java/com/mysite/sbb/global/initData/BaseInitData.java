@@ -30,14 +30,10 @@ public class BaseInitData {
     public void work1() {
         if (questionRepository.count() > 0) return; // 이미 있으면 다시 만들지 않는다.
 
-        Question q1 = new Question();
-        q1.setSubject("sbb가 무엇인가요?");
-        q1.setContent("sbb에 대해서 알고 싶습니다.");
+        Question q1 = new Question("sbb가 무엇인가요?", "sbb에 대해서 알고 싶습니다.");
         questionRepository.save(q1);
 
-        Question q2 = new Question();
-        q2.setSubject("스프링부트 모델 질문입니다.");
-        q2.setContent("id는 자동으로 생성되나요?");
+        Question q2 = new Question("스프링부트 모델 질문입니다.", "id는 자동으로 생성되나요?");
         q2.addAnswer("네 자동으로 생성됩니다.");
         questionRepository.save(q2); // q2를 저장할 때 answers에 있는 답변도 함께 INSERT (cascade PERSIST)
     }

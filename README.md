@@ -756,3 +756,60 @@ public class QuestionService {
 ```
 
 > **결과** 화면과 동작은 그대로입니다. 테스트 21건이 그대로 통과합니다.
+
+### 009-02 서비스, 엔티티 @Setter 제거하고 생성자와 의미 있는 메서드로
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/009-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/009-02)
+
+**무엇을** `Question`, `Answer`에서 `@Setter`를 없애고, 필요한 값을 받는 **생성자**와 의미 있는 메서드(`modify()`)로 바꿨습니다.
+
+**왜** `@Setter`가 열려 있으면 어디서든 값을 바꿀 수 있어서, 값이 언제 어디서 바뀌는지 추적하기 어렵습니다. 값을 바꾸는 경로를 엔티티의 메서드로만 제한합니다(14168 Post 엔티티 방식).
+
+`Question.java` 변경 전
+```java
+@Entity
+@Getter
+@Setter
+public class Question extends BaseEntity {
+    private String subject;
+    private String content;
+    // ...
+    public Answer addAnswer(String content) {
+        Answer answer = new Answer();
+        answer.setContent(content);
+        answer.setQuestion(this);
+        // ...
+```
+
+`Question.java` 변경 후
+```java
+@Entity
+@Getter
+@NoArgsConstructor(access = PROTECTED)   // JPA용 기본 생성자 (외부에서는 사용 금지)
+public class Question extends BaseEntity {
+    private String subject;
+    private String content;
+    // ...
+    public Question(String subject, String content) {   // 만들 때 필요한 값
+        this.subject = subject;
+        this.content = content;
+    }
+
+    public void modify(String subject, String content) { // 값을 바꾸는 유일한 경로
+        this.subject = subject;
+        this.content = content;
+    }
+
+    public Answer addAnswer(String content) {
+        Answer answer = new Answer(this, content);
+        // ...
+```
+
+`BaseInitData.java`
+```diff
+- Question q1 = new Question();
+- q1.setSubject("sbb가 무엇인가요?");
+- q1.setContent("sbb에 대해서 알고 싶습니다.");
++ Question q1 = new Question("sbb가 무엇인가요?", "sbb에 대해서 알고 싶습니다.");
+```
+
+> **결과** 화면과 동작은 그대로입니다. 테스트에서도 `setSubject(...)` 대신 `modify(...)`를 씁니다.
