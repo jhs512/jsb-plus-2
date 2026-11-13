@@ -2202,3 +2202,27 @@ public class GlobalModelAttribute {
 | 변경 전 (028-02) | 변경 후 |
 |---|---|
 | ![전](docs/steps/028-02-1.jpg) | ![후](docs/steps/028-03-1.jpg) |
+
+### 028-04 마크다운, [실험] 입력에 섞인 HTML이 그대로 실행된다(XSS)
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/028-04) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/028-04)
+
+**무엇을** 본문에 HTML 태그를 섞어 써 봤습니다. 확인용 테스트도 추가했습니다. **(실험 커밋)**
+
+**왜** `th:utext`는 이스케이프를 하지 않고 HTML을 그대로 출력합니다(14168 16강). 마크다운 변환기도 기본적으로 입력에 섞인 HTML을 그대로 통과시킵니다. 둘이 만나면 어떻게 되는지 확인합니다.
+
+| | `th:text` | `th:utext` |
+|---|---|---|
+| `<b>홍길동</b>` 출력 | `&lt;b&gt;홍길동&lt;/b&gt;` (글자로 보임) | **홍길동** (HTML로 실행) |
+| 용도 | 일반 텍스트 | 신뢰할 수 있는 HTML만 |
+
+`MarkdownServiceTest.java`
+```java
+@Test
+void t2() {   // [실험]
+    String html = markdownService.render("안녕 <script>alert('xss')</script>");
+    assertThat(html).contains("<script>alert('xss')</script>");   // 그대로 통과한다
+}
+```
+
+**결과** 사용자가 입력한 `<b style="color:red">`가 그대로 실행되어 큰 빨간 글씨가 됐습니다. 이게 `<script>`였다면, 이 글을 연 모든 사람의 브라우저에서 스크립트가 실행됩니다(XSS).
+![HTML이 실행됨](docs/steps/028-04-1.jpg)

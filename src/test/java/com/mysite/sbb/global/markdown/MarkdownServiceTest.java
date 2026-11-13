@@ -16,4 +16,12 @@ class MarkdownServiceTest {
 
         assertThat(html).contains("<h1>제목</h1>", "<strong>굵게</strong>", "<li>항목</li>");
     }
+
+    @Test
+    @DisplayName("[실험] 입력에 섞인 HTML/스크립트도 그대로 통과한다 -> th:utext로 출력하면 XSS")
+    void t2() {
+        String html = markdownService.render("안녕 <script>alert('xss')</script>");
+
+        assertThat(html).contains("<script>alert('xss')</script>");
+    }
 }
