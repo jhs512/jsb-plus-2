@@ -1,5 +1,6 @@
 package com.mysite.sbb.domain.question.answer.controller;
 
+import com.mysite.sbb.domain.question.answer.entity.Answer;
 import com.mysite.sbb.domain.question.answer.service.AnswerService;
 import com.mysite.sbb.domain.question.question.entity.Question;
 import com.mysite.sbb.domain.question.question.service.QuestionService;
@@ -7,15 +8,19 @@ import com.mysite.sbb.domain.user.user.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 
@@ -56,5 +61,41 @@ public class AnswerController {
         // 처리 후 화면을 직접 그리지 않고 상세 페이지로 다시 요청하게 한다. (POST-Redirect-GET)
         // -> 새로고침해도 답변이 중복 등록되지 않는다. (14168 28강)
         return "redirect:/question/detail/%d".formatted(id);
+    }
+
+    // 본인 답변이 아니면 403
+    private Answer getAnswerForAuthor(int id, Principal principal) {
+        Answer answer = answerService.getAnswer(id);
+        if (!answer.isAuthor(userService.getUser(principal.getName()))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
+        }
+        return answer;
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/modify/{id}")
+    public String showModify(@PathVariable int id, Principal principal, Model model) {
+        Answer answer = getAnswerForAuthor(id, principal);
+        model.addAttribute("answerForm", new AnswerForm(answer.getContent()));
+
+        return "answer_form";
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping("/modify/{id}")
+    @Transactional
+    public String modify(
+            @PathVariable int id,
+            @ModelAttribute("answerForm") @Valid AnswerForm answerForm,
+            BindingResult bindingResult,
+            Principal principal
+    ) {
+        Answer answer = getAnswerForAuthor(id, principal);
+
+        if (bindingResult.hasErrors()) return "answer_form";
+
+        answerService.modify(answer, answerForm.content());
+
+        return "redirect:/question/detail/%d".formatted(answer.getQuestion().getId());
     }
 }

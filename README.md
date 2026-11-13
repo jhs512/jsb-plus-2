@@ -1923,3 +1923,38 @@ public String delete(@PathVariable int id, Principal principal) {
 ![GET 405](docs/steps/025-03-1.jpg)
 ![삭제 버튼](docs/steps/025-03-2.jpg)
 ![DELETE 302](docs/steps/025-03-3.jpg)
+
+### 025-04 수정과 삭제, 답변 수정(PUT)
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/025-04) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/025-04)
+
+**무엇을** 답변 수정을 **PUT**으로 만들었습니다. 본인 답변에만 수정 버튼이 보이고, 남의 답변을 수정하려 하면 403입니다.
+
+**왜** 교재 3-09. 질문 수정과 같은 방식입니다.
+
+`AnswerController.java` (핵심)
+```java
+@PreAuthorize("isAuthenticated()")
+@PutMapping("/modify/{id}")
+@Transactional
+public String modify(@PathVariable int id, @ModelAttribute("answerForm") @Valid AnswerForm answerForm,
+                     BindingResult bindingResult, Principal principal) {
+    Answer answer = getAnswerForAuthor(id, principal);   // 본인이 아니면 403
+    if (bindingResult.hasErrors()) return "answer_form";
+    answerService.modify(answer, answerForm.content());  // answer.modify(content)
+    return "redirect:/question/detail/%d".formatted(answer.getQuestion().getId());
+}
+```
+
+`answer_form.html` (새 파일, 핵심)
+```html
+<form th:object="${answerForm}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <input type="hidden" name="_method" value="PUT">
+    <th:block th:replace="~{form_errors :: formErrorsFragment}"></th:block>
+    <textarea th:field="*{content}" class="form-control" rows="10"></textarea>
+    <!-- ... -->
+```
+
+**결과**
+![답변 수정 버튼](docs/steps/025-04-1.jpg)
+![PUT 302](docs/steps/025-04-2.jpg)

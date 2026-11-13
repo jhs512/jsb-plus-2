@@ -36,4 +36,8 @@ public class Answer extends BaseEntity {
     public void modify(String content) {
         this.content = content;
     }
+
+    public boolean isAuthor(SiteUser user) {
+        return user != null && author != null && author.getId() == user.getId();
+    }
 }
