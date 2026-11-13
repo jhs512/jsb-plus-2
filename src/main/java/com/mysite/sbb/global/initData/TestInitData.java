@@ -1,7 +1,7 @@
-package com.mysite.sbb;
+package com.mysite.sbb.global.initData;
 
-import com.mysite.sbb.question.Question;
-import com.mysite.sbb.question.QuestionRepository;
+import com.mysite.sbb.domain.question.question.entity.Question;
+import com.mysite.sbb.domain.question.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;

@@ -556,3 +556,29 @@ assertThat(answer.getId()).isGreaterThan(0);
 ![테스트 결과](docs/steps/005-06-1.jpg)
 
 > **확인해 볼 것** `addAnswer` 직후 `id`가 0인 이유는 INSERT가 아직 실행되지 않았기 때문입니다. 이 차이는 027(앵커)에서 다시 중요해집니다.
+
+### 006-01 도메인별 분류, 14168 방식 패키지 구조로 이동
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/006-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/006-01)
+
+**무엇을** 패키지를 14168 강의 방식으로 바꿨습니다. 도메인 코드는 `domain/{주제}/{엔티티}/{역할}`로, 앱 전체에서 쓰는 코드는 `global/`로 옮겼습니다.
+
+**왜** 교재 방식(`question/`, `answer/` 폴더 하나에 엔티티·리포지터리·서비스·컨트롤러가 다 들어감)은 처음엔 단순합니다. 하지만 기능이 늘어나면 한 폴더가 커지고, 공통 코드(`BaseEntity`, 샘플 데이터)가 최상위에 섞입니다. 파일이 아직 적을 때 구조를 정리합니다(교재 2-06의 "도메인별 분류"를 한 단계 더 세분화).
+
+이동 전 → 이동 후
+```text
+com.mysite.sbb                         com.mysite.sbb
+├── BaseEntity.java                    ├── SbbApplication.java
+├── MainController.java                ├── domain
+├── SbbApplication.java                │   ├── home/home/controller/MainController.java
+├── TestInitData.java                  │   └── question
+├── question                           │       ├── question/entity/Question.java
+│   ├── Question.java                  │       ├── question/repository/QuestionRepository.java
+│   └── QuestionRepository.java        │       ├── answer/entity/Answer.java
+└── answer                             │       └── answer/repository/AnswerRepository.java
+    ├── Answer.java                    └── global
+    └── AnswerRepository.java              ├── jpa/entity/BaseEntity.java
+                                           └── initData/TestInitData.java
+```
+
+> **왜 `question/question`처럼 두 번?** 앞의 `question`은 **큰 주제(게시판)**, 뒤는 그 안의 **개별 엔티티**입니다. 답변은 질문 게시판에 속하므로 `question/answer`입니다(14168의 `post/post`, `post/postComment`와 같은 원리).
+> **결과** 파일 위치와 `package`, `import`만 바뀌었습니다. 동작은 같아서 테스트 20건이 그대로 통과합니다.

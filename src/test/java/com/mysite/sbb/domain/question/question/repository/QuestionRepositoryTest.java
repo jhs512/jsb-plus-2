@@ -1,5 +1,6 @@
-package com.mysite.sbb.question;
+package com.mysite.sbb.domain.question.question.repository;
 
+import com.mysite.sbb.domain.question.question.entity.Question;
 import org.hibernate.LazyInitializationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

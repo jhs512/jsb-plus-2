@@ -1,7 +1,8 @@
-package com.mysite.sbb.answer;
+package com.mysite.sbb.domain.question.answer.repository;
 
-import com.mysite.sbb.question.Question;
-import com.mysite.sbb.question.QuestionRepository;
+import com.mysite.sbb.domain.question.answer.entity.Answer;
+import com.mysite.sbb.domain.question.question.entity.Question;
+import com.mysite.sbb.domain.question.question.repository.QuestionRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

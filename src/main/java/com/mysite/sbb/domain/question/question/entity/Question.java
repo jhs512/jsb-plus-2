@@ -1,7 +1,7 @@
-package com.mysite.sbb.question;
+package com.mysite.sbb.domain.question.question.entity;
 
-import com.mysite.sbb.BaseEntity;
-import com.mysite.sbb.answer.Answer;
+import com.mysite.sbb.global.jpa.entity.BaseEntity;
+import com.mysite.sbb.domain.question.answer.entity.Answer;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

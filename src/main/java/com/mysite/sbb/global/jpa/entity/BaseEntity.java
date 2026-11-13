@@ -1,4 +1,4 @@
-package com.mysite.sbb;
+package com.mysite.sbb.global.jpa.entity;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;

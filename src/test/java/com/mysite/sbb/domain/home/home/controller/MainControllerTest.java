@@ -1,4 +1,4 @@
-package com.mysite.sbb;
+package com.mysite.sbb.domain.home.home.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
