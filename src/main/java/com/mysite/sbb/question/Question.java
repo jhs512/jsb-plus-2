@@ -28,4 +28,15 @@ public class Question extends BaseEntity {
     // new ArrayList<>(): null이 아니므로 바로 add 가능 (14163 23강)
     @OneToMany(mappedBy = "question", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     private List<Answer> answers = new ArrayList<>();
+
+    // 답변 생성을 Question에게 맡긴다. answerRepository.save 없이도
+    // cascade PERSIST 덕분에 트랜잭션이 끝날 때 자동 INSERT 된다. (14163 21강)
+    public Answer addAnswer(String content) {
+        Answer answer = new Answer();
+        answer.setContent(content);
+        answer.setQuestion(this); // 관계의 주인 쪽(question_id)을 채워야 DB에 반영된다.
+        answers.add(answer);      // 자바 객체 쪽 관계도 함께 맞춰 준다.
+
+        return answer;
+    }
 }

@@ -520,3 +520,39 @@ void t10() {
 
 **결과** 바로 앞의 실험(트랜잭션 밖 LAZY)과 달리, 같은 `getAnswers()`가 정상 동작합니다.
 ![테스트 결과](docs/steps/005-05-1.jpg)
+
+### 005-06 리포지터리, 답변 생성 2가지 방법(save vs addAnswer)
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/005-06) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/005-06)
+
+**무엇을** 답변을 만드는 두 가지 방법을 비교했습니다. 교재처럼 `answerRepository.save()`로 저장하는 방법과, 강사처럼 `question.addAnswer()`로 질문에 맡기는 방법입니다. 샘플 데이터도 두 번째 방법으로 바꿨습니다.
+
+**왜** `@OneToMany` 필드에 `cascade = PERSIST`가 있으면, 질문의 답변 목록에 추가만 해도 트랜잭션이 끝날 때 자동으로 INSERT 됩니다(14163 21강). 리포지터리를 따로 주입받지 않는 객체지향적인 방식입니다.
+
+`Question.java`
+```diff
++ public Answer addAnswer(String content) {
++     Answer answer = new Answer();
++     answer.setContent(content);
++     answer.setQuestion(this);   // 관계의 주인(question_id) 쪽을 채워야 DB에 반영된다
++     answers.add(answer);        // 자바 객체 쪽 관계도 함께 맞춘다
++     return answer;
++ }
+```
+
+`AnswerRepositoryTest.java`
+```java
+// 방법 1(교재): 즉시 INSERT
+answerRepository.save(answer);
+assertThat(answer.getId()).isGreaterThan(0);
+
+// 방법 2(강사): 트랜잭션이 끝나거나 flush 할 때 INSERT
+Answer answer = q2.addAnswer("답변 by addAnswer");
+assertThat(answer.getId()).isEqualTo(0);    // 아직 INSERT 전
+questionRepository.flush();                 // 변경 감지 → cascade PERSIST → INSERT
+assertThat(answer.getId()).isGreaterThan(0);
+```
+
+**결과**
+![테스트 결과](docs/steps/005-06-1.jpg)
+
+> **확인해 볼 것** `addAnswer` 직후 `id`가 0인 이유는 INSERT가 아직 실행되지 않았기 때문입니다. 이 차이는 027(앵커)에서 다시 중요해집니다.

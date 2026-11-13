@@ -1,7 +1,5 @@
 package com.mysite.sbb;
 
-import com.mysite.sbb.answer.Answer;
-import com.mysite.sbb.answer.AnswerRepository;
 import com.mysite.sbb.question.Question;
 import com.mysite.sbb.question.QuestionRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +20,6 @@ public class TestInitData {
     @Lazy
     private TestInitData self;
     private final QuestionRepository questionRepository;
-    private final AnswerRepository answerRepository;
 
     @Bean
     public ApplicationRunner testInitDataApplicationRunner() {
@@ -41,11 +38,7 @@ public class TestInitData {
         Question q2 = new Question();
         q2.setSubject("스프링부트 모델 질문입니다.");
         q2.setContent("id는 자동으로 생성되나요?");
-        questionRepository.save(q2);
-
-        Answer a1 = new Answer();
-        a1.setContent("네 자동으로 생성됩니다.");
-        a1.setQuestion(q2);
-        answerRepository.save(a1);
+        q2.addAnswer("네 자동으로 생성됩니다.");
+        questionRepository.save(q2); // q2를 저장할 때 answers에 있는 답변도 함께 INSERT (cascade PERSIST)
     }
 }
