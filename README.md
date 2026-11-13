@@ -2025,3 +2025,22 @@ public int hashCode() { return Objects.hashCode(id); }
 | ![전](docs/steps/025-05-1.jpg) | ![후](docs/steps/025-06-1.jpg) |
 
 ![DELETE SQL](docs/steps/025-06-2.jpg)
+
+### 025-07 수정과 삭제, 수정일시 표시
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/025-07) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/025-07)
+
+**무엇을** 수정된 질문·답변에 "modified at" 수정일시를 표시합니다.
+
+**왜** 교재 3-09는 `modifyDate`가 null이 아니면 표시합니다. 그런데 이 프로젝트는 JPA Auditing이 **생성할 때도** `modifyDate`를 채웁니다(004-05). 그래서 두 시각을 비교해 "생성 후 수정된 적이 있을 때만" 보여 줍니다.
+
+`question_detail.html`
+```html
+<div class="badge bg-light text-dark p-2 text-start mx-3"
+     th:if="${question.modifyDate.isAfter(question.createDate)}">
+    <div class="mb-2">modified at</div>
+    <div th:text="${#temporals.format(question.modifyDate, 'yyyy-MM-dd HH:mm')}"></div>
+</div>
+```
+
+**결과**
+![modified at](docs/steps/025-07-1.jpg)
