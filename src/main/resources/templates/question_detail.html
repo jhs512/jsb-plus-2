@@ -1,7 +1,8 @@
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.8/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<link rel="stylesheet" type="text/css" th:href="@{/resource/style.css}">
-<div class="container my-3">
+<html layout:decorate="~{layout}">
+<head>
+    <title>질문 상세</title>
+</head>
+<div layout:fragment="content" class="container my-3">
     <!-- 질문 -->
     <h2 class="border-bottom py-2" th:text="${question.subject}">제목</h2>
     <div class="card my-3">
@@ -36,3 +37,4 @@
         <input type="submit" value="답변등록" class="btn btn-primary my-2">
     </form>
 </div>
+</html>

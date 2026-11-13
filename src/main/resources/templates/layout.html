@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 각 페이지의 <title> + 레이아웃의 <title>을 합친다. 예) 질문 목록 | SBB (14168 45강) -->
+    <title layout:title-pattern="$CONTENT_TITLE | $LAYOUT_TITLE">SBB</title>
+    <!-- 부트스트랩, 폰트는 파일을 내려받지 않고 CDN 주소로 가져온다. (14163 39강) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.8/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" th:href="@{/resource/style.css}">
+</head>
+<body>
+<!-- 각 페이지의 layout:fragment="content" 영역이 이 자리에 들어온다. -->
+<th:block layout:fragment="content"></th:block>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.8/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

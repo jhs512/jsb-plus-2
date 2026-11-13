@@ -1049,3 +1049,42 @@ input[type=submit] { margin-top: 10px; }
 | ![전](docs/steps/013-01-1.jpg) | ![후](docs/steps/014-01-2.jpg) |
 
 ![목록](docs/steps/014-01-1.jpg)
+
+### 015-01 표준 HTML 구조, 레이아웃 템플릿
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/015-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/015-01)
+
+**무엇을** 공통 HTML 뼈대(`layout.html`)를 만들고, 각 페이지는 본문(`layout:fragment="content"`)만 쓰도록 바꿨습니다. 탭 제목은 페이지마다 다르게 붙입니다.
+
+**왜** 모든 페이지가 `<!doctype html>`, `<head>`, CDN 링크를 갖춘 표준 HTML이어야 합니다. 공통 부분은 한 곳에서 관리합니다(교재 2-15). `layout:title-pattern`으로 "질문 목록 | SBB"처럼 페이지별 제목을 만듭니다(14168 45강).
+
+`layout.html` (새 파일, 핵심)
+```html
+<!doctype html>
+<html lang="ko">
+<head>
+    <title layout:title-pattern="$CONTENT_TITLE | $LAYOUT_TITLE">SBB</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.8/css/bootstrap.min.css">
+    <!-- ... -->
+</head>
+<body>
+<th:block layout:fragment="content"></th:block>
+</body>
+</html>
+```
+
+`question_list.html`
+```diff
+- <link rel="stylesheet" href="...bootstrap.min.css">
+- <div class="container my-3">
++ <html layout:decorate="~{layout}">
++ <head><title>질문 목록</title></head>
++ <div layout:fragment="content" class="container my-3">
+```
+
+`build.gradle.kts`
+```diff
++ implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect")
+```
+
+**결과** 화면은 같지만, 응답 HTML이 레이아웃으로 감싸지고 탭 제목이 "질문 목록 | SBB"가 됩니다.
+![레이아웃](docs/steps/015-01-1.jpg)
