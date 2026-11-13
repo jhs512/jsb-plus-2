@@ -1510,3 +1510,21 @@ public SecurityFilterChain filterChain(HttpSecurity http) {
 ![200](docs/steps/021-02-1.jpg)
 
 > **교재와 다른 점** `new AntPathRequestMatcher("/**")` → `"/**"` 문자열. 교재 코드를 그대로 쓰면 컴파일되지 않습니다.
+
+### 021-03 스프링 시큐리티, [실험] action 없는 폼은 CSRF 토큰이 없어 403
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/021-03) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/021-03)
+
+**무엇을** 질문 등록 폼으로 실제로 POST를 보내 봤습니다. 코드는 바꾸지 않은 관찰용 커밋입니다. **(실험 커밋)**
+
+**왜** CSRF 보호가 켜지면 POST에 `_csrf` 토큰이 꼭 있어야 합니다. 타임리프는 `th:action`이 붙은 폼에만 토큰을 자동으로 넣습니다. 질문 폼은 등록·수정 화면에서 같이 쓰려고 `action`을 생략했는데, 그 결과가 어떤지 확인합니다(14168 46강).
+
+| 폼 | 코드 | 토큰 |
+|---|---|---|
+| 답변 폼 | `<form th:action="@{...}" method="post">` | 자동으로 들어감 |
+| 질문 폼 | `<form th:object="${form}" method="post">` (action 생략) | **없음** |
+
+**결과** 질문 등록은 **403**, 답변 등록은 302로 성공합니다. 네트워크 탭의 폼 데이터를 보면 차이가 `_csrf` 하나입니다.
+![질문 폼 403](docs/steps/021-03-1.jpg)
+![답변 폼 302](docs/steps/021-03-2.jpg)
+
+> **CSRF란?** 다른 사이트가 로그인한 사용자 몰래 우리 사이트로 POST를 보내는 공격입니다. 우리 사이트가 발급한 토큰이 있는 요청만 받아서 막습니다.
