@@ -2,17 +2,19 @@ package com.mysite.sbb;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class MainController {
     @GetMapping("/")
-    public void index() {
-        // 서버 콘솔에만 출력되고, 브라우저에는 아무것도 전달되지 않는다.
-        System.out.println("index");
+    @ResponseBody // 반환값이 그대로 HTTP 응답 본문이 된다.
+    public String index() {
+        return "SBB";
     }
 
     @GetMapping("/hello")
-    public void hello() {
-        System.out.println("hello");
+    @ResponseBody
+    public String hello() {
+        return "안녕하세요.";
     }
 }

@@ -102,3 +102,34 @@ public class MainController {
 
 > **왜 500일까?** `void`를 반환하면 스프링은 요청 URL(`hello`)을 화면(뷰) 이름으로 씁니다. 그 화면을 찾으려고 다시 `/hello`로 보내고, 또 같은 메서드가 실행되는 무한 반복이 되어 `Circular view path` 에러가 납니다.
 > **확인해 볼 것** 없는 주소(`/not-exist`)는 500이 아니라 404입니다. 매핑된 메서드가 아예 없기 때문입니다.
+
+### 002-02 간단한 웹 프로그램, @ResponseBody로 문자열 응답
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/002-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/002-02)
+
+**무엇을** 액션 메서드가 `String`을 반환하고 `@ResponseBody`를 붙였습니다. 브라우저 대신 반복해서 확인할 수 있도록 MockMvc 테스트도 만들었습니다.
+
+**왜** `@ResponseBody`가 있으면 반환값이 **화면 이름이 아니라 응답 본문 그 자체**가 됩니다(14163 4강).
+
+`MainController.java`
+```diff
+  @GetMapping("/hello")
+- public void hello() {
+-     System.out.println("hello");
+- }
++ @ResponseBody // 반환값이 그대로 HTTP 응답 본문이 된다.
++ public String hello() {
++     return "안녕하세요.";
++ }
+```
+
+`MainControllerTest.java`
+```java
+mvc.perform(get("/hello"))
+        .andExpect(status().isOk())
+        .andExpect(content().string("안녕하세요."));
+```
+
+**결과** 이제 **200**과 함께 문자열이 그대로 보입니다.
+![GET /hello 200](docs/steps/002-02-1.jpg)
+
+> **확인해 볼 것** 문자열 대신 객체를 반환하면 어떻게 될까요? 스프링이 자동으로 JSON으로 바꿉니다(14168 29강).
