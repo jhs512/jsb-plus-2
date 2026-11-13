@@ -337,3 +337,45 @@ public class Answer {
 | 이전 (004-03) | 이후 (004-04) |
 |---|---|
 | ![이전](docs/steps/004-03-1.jpg) | ![이후](docs/steps/004-04-1.jpg) |
+
+### 004-05 엔티티, BaseEntity와 JPA Auditing
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/004-05) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/004-05)
+
+**무엇을** 모든 엔티티가 공통으로 갖는 id, 생성일, 수정일을 `BaseEntity` 하나로 모았습니다. 날짜는 JPA Auditing이 자동으로 채웁니다.
+
+**왜** 교재는 엔티티마다 id와 날짜를 따로 선언하고, `createDate`를 서비스에서 `LocalDateTime.now()`로 직접 넣습니다. 공통 필드는 한 곳에서 관리하고 날짜는 자동으로 기록합니다(14168 2강).
+
+`BaseEntity.java` (새 파일)
+```java
+@MappedSuperclass   // 테이블은 안 되고, 필드만 자식 엔티티 테이블에 들어간다
+@EntityListeners(AuditingEntityListener.class)
+@Getter
+public abstract class BaseEntity {
+    @Id @GeneratedValue(strategy = IDENTITY)
+    private int id;
+
+    @CreatedDate        // INSERT 될 때 자동 기록
+    private LocalDateTime createDate;
+
+    @LastModifiedDate   // INSERT, UPDATE 될 때 자동 기록
+    private LocalDateTime modifyDate;
+}
+```
+
+`Question.java`, `Answer.java`
+```diff
+- public class Question {
+-     @Id @GeneratedValue(strategy = IDENTITY)
+-     private int id;
+-     private LocalDateTime createDate;
++ public class Question extends BaseEntity {
+```
+
+`SbbApplication.java`
+```diff
+  @SpringBootApplication
++ @EnableJpaAuditing   // @CreatedDate, @LastModifiedDate 동작에 필요
+```
+
+**결과** 두 테이블 모두 `CREATE_DATE`와 새 `MODIFY_DATE` 컬럼을 갖게 되었습니다.
+![BaseEntity 컬럼](docs/steps/004-05-1.jpg)
