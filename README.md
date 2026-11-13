@@ -2169,3 +2169,36 @@ public class MarkdownService {
 ![500](docs/steps/028-02-1.jpg)
 
 > **확인해 볼 것** 다음 커밋에서 빈을 템플릿이 직접 부르지 않고, 컨트롤러 쪽에서 모델에 넣어 주는 방식으로 바꿉니다.
+
+### 028-03 마크다운, @ControllerAdvice 공통 모델로 해결
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/028-03) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/028-03)
+
+**무엇을** `@ControllerAdvice`로 모든 화면에 `markdown`이라는 이름의 모델 값을 넣고, 템플릿은 `${markdown.render(...)}`로 씁니다.
+
+**왜** 템플릿이 빈을 직접 찾는 대신, 컨트롤러 쪽에서 화면에 필요한 값을 넣어 줍니다. `@ControllerAdvice` + `@ModelAttribute`는 **모든 컨트롤러의 모든 액션 메서드**가 실행되기 전에 공통 모델 값을 등록합니다(14168 19강).
+
+`GlobalModelAttribute.java` (새 파일)
+```java
+@ControllerAdvice
+@RequiredArgsConstructor
+public class GlobalModelAttribute {
+    private final MarkdownService markdownService;
+
+    @ModelAttribute("markdown")   // 모든 화면에서 ${markdown.render(내용)}
+    public MarkdownService markdown() {
+        return markdownService;
+    }
+}
+```
+
+`question_detail.html`
+```diff
+- <div class="card-text" th:utext="${@markdownService.render(question.content)}">내용</div>
++ <div class="card-text" th:utext="${markdown.render(question.content)}">내용</div>
+```
+
+**결과** 마크다운으로 쓴 본문이 서식대로 보입니다.
+
+| 변경 전 (028-02) | 변경 후 |
+|---|---|
+| ![전](docs/steps/028-02-1.jpg) | ![후](docs/steps/028-03-1.jpg) |

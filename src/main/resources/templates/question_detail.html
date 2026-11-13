@@ -8,8 +8,8 @@
     <div class="card my-3">
         <div class="card-body">
             <!-- white-space: pre-line -> 입력한 줄바꿈을 그대로 보여준다. (14168 29강) -->
-            <!-- 교재 방식: ${@빈이름.메서드()} 로 직접 호출 -->
-            <div class="card-text" th:utext="${@markdownService.render(question.content)}">내용</div>
+            <!-- th:utext: HTML을 이스케이프하지 않고 그대로 출력 (14168 16강) -> 마크다운이 만든 HTML이 렌더링된다. -->
+            <div class="card-text" th:utext="${markdown.render(question.content)}">내용</div>
             <div class="d-flex justify-content-end">
                 <!-- 생성 후 수정된 적이 있을 때만 수정일시 표시 (교재 3-09) -->
                 <div class="badge bg-light text-dark p-2 text-start mx-3"
@@ -50,7 +50,7 @@
         <!-- 앵커: /question/detail/2#answer_5 로 오면 이 위치로 스크롤 (교재 3-11) -->
         <a th:id="|answer_${answer.id}|"></a>
         <div class="card-body">
-            <div class="card-text" th:utext="${@markdownService.render(answer.content)}">답변 내용</div>
+            <div class="card-text" th:utext="${markdown.render(answer.content)}">답변 내용</div>
             <div class="d-flex justify-content-end">
                 <!-- 생성 후 수정된 적이 있을 때만 수정일시 표시 (교재 3-09) -->
                 <div class="badge bg-light text-dark p-2 text-start mx-3"
