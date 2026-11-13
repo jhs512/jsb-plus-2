@@ -18,10 +18,19 @@ class MarkdownServiceTest {
     }
 
     @Test
-    @DisplayName("[실험] 입력에 섞인 HTML/스크립트도 그대로 통과한다 -> th:utext로 출력하면 XSS")
+    @DisplayName("입력에 섞인 HTML은 문자로 이스케이프된다 (XSS 방지)")
     void t2() {
         String html = markdownService.render("안녕 <script>alert('xss')</script>");
 
-        assertThat(html).contains("<script>alert('xss')</script>");
+        assertThat(html).doesNotContain("<script>");
+        assertThat(html).contains("&lt;script&gt;");
+    }
+
+    @Test
+    @DisplayName("javascript: 링크는 무력화된다")
+    void t3() {
+        String html = markdownService.render("[클릭](javascript:alert(1))");
+
+        assertThat(html).doesNotContain("href=\"javascript:");
     }
 }

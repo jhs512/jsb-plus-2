@@ -2226,3 +2226,32 @@ void t2() {   // [실험]
 
 **결과** 사용자가 입력한 `<b style="color:red">`가 그대로 실행되어 큰 빨간 글씨가 됐습니다. 이게 `<script>`였다면, 이 글을 연 모든 사람의 브라우저에서 스크립트가 실행됩니다(XSS).
 ![HTML이 실행됨](docs/steps/028-04-1.jpg)
+
+### 028-05 마크다운, 원본 HTML 이스케이프와 URL 무력화로 XSS 방지
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/028-05) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/028-05)
+
+**무엇을** 마크다운 변환기에 `escapeHtml(true)`, `sanitizeUrls(true)`를 켰습니다.
+
+**왜** `th:utext`는 이스케이프를 하지 않으므로, 입력에 섞인 HTML은 변환 단계에서 막아야 합니다. 교재 코드에는 이 처리가 없습니다(강의 외 추가 개선, 14168 16강 응용).
+
+`MarkdownService.java`
+```diff
+- private final HtmlRenderer renderer = HtmlRenderer.builder().build();
++ private final HtmlRenderer renderer = HtmlRenderer.builder()
++         .escapeHtml(true)     // <script> 같은 원본 HTML을 &lt;script&gt; 글자로
++         .sanitizeUrls(true)   // [링크](javascript:...) 같은 위험한 URL 무력화
++         .build();
+```
+
+`MarkdownServiceTest.java`
+```diff
+- assertThat(html).contains("<script>alert('xss')</script>");
++ assertThat(html).doesNotContain("<script>");
++ assertThat(html).contains("&lt;script&gt;");
+```
+
+**결과** 같은 HTML을 넣어도 이제는 글자로만 보이고, `javascript:` 링크는 `href=""`로 무력화됩니다.
+
+| 변경 전 (028-04) | 변경 후 |
+|---|---|
+| ![전](docs/steps/028-04-1.jpg) | ![후](docs/steps/028-05-1.jpg) |
