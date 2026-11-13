@@ -2383,3 +2383,33 @@ Page<Answer> findByQuestionOrderByVoteCount(@Param("question") Question question
 
 **결과** 추천순으로 바꾸면, 가장 오래된 답변이지만 추천 2표를 받은 답변이 맨 위로 올라옵니다. `select`도 "추천순"이 선택된 상태로 그려집니다.
 ![추천순](docs/steps/030-02-1.jpg)
+
+### 031-01 댓글, Comment 엔티티와 연관관계
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/031-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/031-01)
+
+**무엇을** 댓글 엔티티(`Comment`)를 만들고, 질문과 답변 양쪽에 댓글 목록(`comments`)을 연결했습니다.
+
+**왜** 도전과제 3-14 "댓글". 댓글은 질문에도, 답변에도 달 수 있습니다. 하나의 `Comment` 엔티티에 `question`과 `answer` 두 연관관계를 두고 **둘 중 하나만** 채웁니다. 추가·삭제는 1차 구현 025에서 익힌 방식(목록에 추가하면 PERSIST, 목록에서 빼면 orphanRemoval)을 그대로 씁니다(14168 PostComment).
+
+`Comment.java` (새 파일, 핵심)
+```java
+@Entity
+public class Comment extends BaseEntity {
+    @ManyToOne(fetch = LAZY) private SiteUser author;
+    @Column(columnDefinition = "TEXT") private String content;
+    @ManyToOne(fetch = LAZY) private Question question;   // 질문 댓글이면
+    @ManyToOne(fetch = LAZY) private Answer answer;       // 답변 댓글이면
+}
+```
+
+`Question.java`, `Answer.java`
+```java
+@OneToMany(mappedBy = "question", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+private List<Comment> comments = new ArrayList<>();
+
+public Comment addComment(SiteUser author, String content) { ... comments.add(comment); }
+public boolean deleteComment(Comment comment) { return comments.remove(comment); }
+```
+
+**결과**
+![COMMENT 테이블](docs/steps/031-01-1.jpg)

@@ -1,16 +1,21 @@
 package com.mysite.sbb.domain.question.answer.entity;
 
 import com.mysite.sbb.domain.question.question.entity.Question;
+import com.mysite.sbb.domain.question.comment.entity.Comment;
 import com.mysite.sbb.domain.user.user.entity.SiteUser;
 import com.mysite.sbb.global.jpa.entity.BaseEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static jakarta.persistence.FetchType.LAZY;
@@ -33,6 +38,10 @@ public class Answer extends BaseEntity {
     @ManyToMany
     private Set<SiteUser> voters = new HashSet<>();
 
+    // 댓글. 14168 Post-PostComment와 같은 방식: 추가는 PERSIST, 부모 삭제 시 REMOVE, 목록에서 빼면 orphanRemoval
+    @OneToMany(mappedBy = "answer", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
     @Column(columnDefinition = "TEXT")
     private String content;
 
@@ -52,5 +61,15 @@ public class Answer extends BaseEntity {
 
     public void vote(SiteUser voter) {
         voters.add(voter); // 이미 있으면 무시 (equals/hashCode가 id 기준이라 가능)
+    }
+
+    public Comment addComment(SiteUser author, String content) {
+        Comment comment = new Comment(author, content, null, this);
+        comments.add(comment);
+        return comment;
+    }
+
+    public boolean deleteComment(Comment comment) {
+        return comments.remove(comment);
     }
 }

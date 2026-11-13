@@ -1,6 +1,7 @@
 package com.mysite.sbb.domain.question.question.entity;
 
 import com.mysite.sbb.domain.question.answer.entity.Answer;
+import com.mysite.sbb.domain.question.comment.entity.Comment;
 import com.mysite.sbb.domain.user.user.entity.SiteUser;
 import com.mysite.sbb.global.jpa.entity.BaseEntity;
 import jakarta.persistence.CascadeType;
@@ -32,6 +33,10 @@ public class Question extends BaseEntity {
     // Set: 같은 사람이 여러 번 추천해도 한 번만 들어간다.
     @ManyToMany
     private Set<SiteUser> voters = new HashSet<>();
+
+    // 댓글. 14168 Post-PostComment와 같은 방식: 추가는 PERSIST, 부모 삭제 시 REMOVE, 목록에서 빼면 orphanRemoval
+    @OneToMany(mappedBy = "question", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
 
     @Column(length = 200) // varchar(200)
     private String subject;
@@ -80,5 +85,15 @@ public class Question extends BaseEntity {
 
     public void vote(SiteUser voter) {
         voters.add(voter); // 이미 있으면 무시 (equals/hashCode가 id 기준이라 가능)
+    }
+
+    public Comment addComment(SiteUser author, String content) {
+        Comment comment = new Comment(author, content, this, null);
+        comments.add(comment);
+        return comment;
+    }
+
+    public boolean deleteComment(Comment comment) {
+        return comments.remove(comment);
     }
 }
