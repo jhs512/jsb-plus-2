@@ -991,3 +991,24 @@ public String createAnswer(@PathVariable int id, @RequestParam("content") String
 ![답변 목록](docs/steps/012-03-1.jpg)
 
 > **확인해 볼 것** `question.answers`는 LAZY입니다. 그런데도 템플릿에서 읽을 수 있는 이유는 스프링부트가 기본으로 켜 두는 OSIV(Open Session In View) 덕분에 화면을 그리는 동안 DB 연결이 유지되기 때문입니다.
+
+### 013-01 웹 페이지 디자인, 스타일시트 적용
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/013-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/013-01)
+
+**무엇을** 스타일시트(`style.css`)를 만들어 목록과 상세 화면에 연결했습니다.
+
+**왜** CSS, JS, 이미지 같은 정적 파일은 `src/main/resources/static`에 두면 그대로 제공됩니다(교재 2-13). 처음부터 `static/resource/` 아래에 두는 이유는, 나중에 스프링 시큐리티에서 `/resource/**` 한 줄로 정적 파일을 허용하기 위해서입니다(14168 46강).
+
+`static/resource/style.css` (새 파일)
+```css
+textarea { width: 100%; }
+input[type=submit] { margin-top: 10px; }
+```
+
+`question_detail.html`, `question_list.html`
+```diff
++ <link rel="stylesheet" type="text/css" th:href="@{/resource/style.css}">
+```
+
+**결과** 답변 입력칸이 화면 폭만큼 넓어졌습니다.
+![스타일 적용](docs/steps/013-01-1.jpg)
