@@ -813,3 +813,39 @@ public class Question extends BaseEntity {
 ```
 
 > **결과** 화면과 동작은 그대로입니다. 테스트에서도 `setSubject(...)` 대신 `modify(...)`를 씁니다.
+
+### 010-01 상세 페이지, 질문 조회해 상세 화면에 표시
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/010-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/010-01)
+
+**무엇을** 질문 하나의 제목과 내용을 보여 주는 상세 페이지(`/question/detail/{id}`)를 만들었습니다.
+
+**왜** 교재 2-10, 14163 35강 1단계. URL 경로의 일부(`{id}`)를 `@PathVariable`로 받는 방법을 익힙니다.
+
+`QuestionController.java`
+```java
+// /question/detail/2 → id = 2
+@GetMapping("/question/detail/{id}")
+public String detail(Model model, @PathVariable int id) {
+    Question question = questionService.getQuestion(id);
+    model.addAttribute("question", question);
+    return "question_detail";
+}
+```
+
+`QuestionService.java`
+```java
+public Question getQuestion(int id) {
+    return questionRepository.findById(id).get();
+}
+```
+
+`question_detail.html` (새 파일)
+```html
+<h1 th:text="${question.subject}">제목</h1>
+<div th:text="${question.content}">내용</div>
+```
+
+**결과**
+![질문 상세](docs/steps/010-01-1.jpg)
+
+> **확인해 볼 것** 없는 번호(`/question/detail/999`)로 접속하면 어떻게 될까요? 010-03에서 다룹니다.

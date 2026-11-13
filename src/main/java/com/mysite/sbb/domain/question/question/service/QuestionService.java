@@ -16,4 +16,8 @@ public class QuestionService {
     public List<Question> getList() {
         return questionRepository.findAll();
     }
+
+    public Question getQuestion(int id) {
+        return questionRepository.findById(id).get();
+    }
 }

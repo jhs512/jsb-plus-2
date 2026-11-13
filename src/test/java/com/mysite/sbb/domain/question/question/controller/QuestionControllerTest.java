@@ -28,4 +28,13 @@ class QuestionControllerTest {
                 .andExpect(content().string(containsString("sbb가 무엇인가요?")))
                 .andExpect(content().string(containsString("스프링부트 모델 질문입니다.")));
     }
+
+    @Test
+    @DisplayName("GET /question/detail/2 -> 2번 질문의 제목과 내용")
+    void t2() throws Exception {
+        mvc.perform(get("/question/detail/2"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("스프링부트 모델 질문입니다.")))
+                .andExpect(content().string(containsString("id는 자동으로 생성되나요?")));
+    }
 }
