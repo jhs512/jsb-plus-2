@@ -1,17 +1,38 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.8/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" type="text/css" th:href="@{/resource/style.css}">
-<h1 th:text="${question.subject}">제목</h1>
-<div th:text="${question.content}">내용</div>
-
-<!-- question.answers: OneToMany 필드라 answerRepository 없이 바로 꺼낼 수 있다. (14163 9강) -->
-<h5 th:text="|${#lists.size(question.answers)}개의 답변이 있습니다.|">0개의 답변이 있습니다.</h5>
-<div>
-    <ul>
-        <li th:each="answer : ${question.answers}" th:text="${answer.content}">답변 내용</li>
-    </ul>
+<div class="container my-3">
+    <!-- 질문 -->
+    <h2 class="border-bottom py-2" th:text="${question.subject}">제목</h2>
+    <div class="card my-3">
+        <div class="card-body">
+            <!-- white-space: pre-line -> 입력한 줄바꿈을 그대로 보여준다. (14168 29강) -->
+            <div class="card-text" style="white-space: pre-line;" th:text="${question.content}">내용</div>
+            <div class="d-flex justify-content-end">
+                <div class="badge bg-light text-dark p-2 text-start">
+                    <div th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm')}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 답변 개수 -->
+    <!-- question.answers: OneToMany 필드라 answerRepository 없이 바로 꺼낼 수 있다. (14163 9강) -->
+    <h5 class="border-bottom my-3 py-2"
+        th:text="|${#lists.size(question.answers)}개의 답변이 있습니다.|">0개의 답변이 있습니다.</h5>
+    <!-- 답변 반복 -->
+    <div class="card my-3" th:each="answer : ${question.answers}">
+        <div class="card-body">
+            <div class="card-text" style="white-space: pre-line;" th:text="${answer.content}">답변 내용</div>
+            <div class="d-flex justify-content-end">
+                <div class="badge bg-light text-dark p-2 text-start">
+                    <div th:text="${#temporals.format(answer.createDate, 'yyyy-MM-dd HH:mm')}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 답변 작성 폼: 전송하면 POST /answer/create/{질문id} 요청이 발생한다. -->
+    <form th:action="@{|/answer/create/${question.id}|}" method="post" class="my-3">
+        <textarea name="content" id="content" rows="10" class="form-control"></textarea>
+        <input type="submit" value="답변등록" class="btn btn-primary my-2">
+    </form>
 </div>
-
-<!-- 답변 작성 폼: 전송하면 POST /answer/create/{질문id} 요청이 발생한다. -->
-<form th:action="@{|/answer/create/${question.id}|}" method="post">
-    <textarea name="content" id="content" rows="15"></textarea>
-    <input type="submit" value="답변등록">
-</form>

@@ -1012,3 +1012,40 @@ input[type=submit] { margin-top: 10px; }
 
 **결과** 답변 입력칸이 화면 폭만큼 넓어졌습니다.
 ![스타일 적용](docs/steps/013-01-1.jpg)
+
+### 014-01 부트스트랩, cdnjs로 부트스트랩과 Pretendard 적용
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/014-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/014-01)
+
+**무엇을** 부트스트랩과 Pretendard 폰트를 적용해 목록은 표(`table`), 상세는 카드(`card`) 모양으로 꾸몄습니다.
+
+**왜** 교재는 부트스트랩 파일을 내려받아 `static`에 넣지만, 강사처럼 **CDN 주소**로 가져와 저장소를 가볍게 유지합니다(14163 39강). 입력한 줄바꿈이 화면에서 사라지지 않도록 `white-space: pre-line`도 넣었습니다(14168 29강).
+
+`question_list.html`
+```diff
++ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.8/css/bootstrap.min.css">
++ <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+- <table>
+-     <thead>
++ <div class="container my-3">
++ <table class="table">
++     <thead class="table-dark">
+```
+
+`question_detail.html` (핵심)
+```html
+<div class="card my-3">
+    <div class="card-body">
+        <div class="card-text" style="white-space: pre-line;" th:text="${question.content}">내용</div>
+        <div class="badge bg-light text-dark p-2"
+             th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm')}"></div>
+    </div>
+</div>
+```
+
+**결과**
+
+| 변경 전 (013-01) | 변경 후 |
+|---|---|
+| ![전](docs/steps/013-01-1.jpg) | ![후](docs/steps/014-01-2.jpg) |
+
+![목록](docs/steps/014-01-1.jpg)
