@@ -597,3 +597,30 @@ com.mysite.sbb                         com.mysite.sbb
 -     private TestInitData self;
 +     private BaseInitData self;
 ```
+
+### 007-01 질문 목록, 타임리프 없이 문자열로 HTML 응답
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/007-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/007-01)
+
+**무엇을** `GET /question/list`에서 질문 목록을 보여 줍니다. 타임리프 없이 **자바 문자열로 HTML을 직접** 만들어 응답합니다.
+
+**왜** 템플릿 엔진 없이 HTML을 만들면 얼마나 불편한지 먼저 겪어 봅니다(14163 27강). 다음 커밋에서 같은 화면을 타임리프로 바꿉니다.
+
+`QuestionController.java` (새 파일, 핵심)
+```java
+@GetMapping("/question/list")
+@ResponseBody
+public String list() {
+    List<Question> questions = questionRepository.findAll();
+
+    String lis = questions.stream()
+            .map(q -> "<li>" + q.getId() + " : " + q.getSubject() + "</li>")
+            .collect(Collectors.joining("\n"));
+
+    return "<h1>질문 목록</h1>\n<ul>\n" + lis + "\n</ul>";   // HTML을 문자열로 조립
+}
+```
+
+**결과**
+![질문 목록](docs/steps/007-01-1.jpg)
+
+> **확인해 볼 것** 제목에 `<b>`나 `<script>`가 들어 있으면 어떻게 될까요? 문자열을 그대로 이어 붙였기 때문에 HTML로 해석됩니다. 타임리프의 `th:text`는 이를 자동으로 이스케이프합니다.
