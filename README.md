@@ -1892,3 +1892,34 @@ public String modify(@PathVariable int id, @ModelAttribute("form") @Valid Questi
 ![수정 폼](docs/steps/025-02-2.jpg)
 ![PUT 302](docs/steps/025-02-3.jpg)
 ![남의 글 403](docs/steps/025-02-4.jpg)
+
+### 025-03 수정과 삭제, 질문 삭제(DELETE)
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/025-03) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/025-03)
+
+**무엇을** 질문 삭제를 **DELETE**(`DELETE /question/delete/{id}`)로 만들었습니다. 상세 화면의 삭제 버튼은 `<a method="DELETE">` 링크이고, 누르기 전에 확인 창을 띄웁니다.
+
+**왜** 교재는 `GET /question/delete/{id}` 링크로 삭제합니다. GET으로 데이터를 지우면 링크 미리보기나 크롤러, 다른 사이트의 이미지 태그만으로도 삭제될 수 있습니다. 삭제는 DELETE로만 받습니다(14168 44강).
+
+`QuestionController.java`
+```java
+@PreAuthorize("isAuthenticated()")
+@DeleteMapping("/delete/{id}")   // 교재: @GetMapping
+@Transactional
+public String delete(@PathVariable int id, Principal principal) {
+    Question question = getQuestionForAuthor(id, principal);   // 본인 글이 아니면 403
+    questionService.delete(question);   // cascade REMOVE로 답변도 함께 삭제
+    return "redirect:/";
+}
+```
+
+`question_detail.html`
+```html
+<a th:href="@{|/question/delete/${question.id}|}" method="DELETE"
+   onclick="return confirm('정말로 삭제하시겠습니까?');"
+   class="btn btn-sm btn-outline-secondary">삭제</a>
+```
+
+**결과** 주소창으로 GET 요청을 보내면 **405**, 삭제 버튼을 누르고 확인 창에서 "확인"을 누르면 `POST(_method=DELETE)` → 302입니다. 목록의 전체 개수가 302에서 301로 줄었습니다.
+![GET 405](docs/steps/025-03-1.jpg)
+![삭제 버튼](docs/steps/025-03-2.jpg)
+![DELETE 302](docs/steps/025-03-3.jpg)

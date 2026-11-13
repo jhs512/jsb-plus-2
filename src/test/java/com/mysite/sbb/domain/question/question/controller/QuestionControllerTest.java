@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -176,4 +177,19 @@ class QuestionControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    @DisplayName("DELETE /question/delete/2 (본인) -> 삭제 후 / 로, 답변도 함께 삭제")
+    void t14() throws Exception {
+        mvc.perform(delete("/question/delete/2").with(csrf()))
+                .andExpect(redirectedUrl("/"));
+
+        mvc.perform(get("/question/detail/2")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("GET 으로는 삭제할 수 없다 -> 405")
+    void t15() throws Exception {
+        mvc.perform(get("/question/delete/2"))
+                .andExpect(status().isMethodNotAllowed());
+    }
 }
