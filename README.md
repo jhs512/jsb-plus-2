@@ -1652,3 +1652,26 @@ public String signup(@ModelAttribute("form") @Valid UserCreateForm form, Binding
 **결과**
 ![회원가입 링크](docs/steps/022-03-1.jpg)
 ![검증 에러](docs/steps/022-03-2.jpg)
+
+### 022-04 회원가입, 비밀번호 불일치와 중복 검사
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/022-04) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/022-04)
+
+**무엇을** 어노테이션으로는 표현하기 어려운 검증 세 가지를 직접 넣었습니다. 비밀번호 확인 불일치, 아이디 중복, 이메일 중복입니다.
+
+**왜** 교재는 저장할 때 나는 DB 예외(`DataIntegrityViolationException`)를 잡아 "이미 등록된 사용자"라고 한 줄로 알려 줍니다. 그러면 어느 칸이 문제인지 알 수 없습니다. 저장 **전에** 확인해서 칸마다 에러를 붙입니다. 메시지는 같은 "순번-필드명-내용" 형식이라 정렬과 포커스가 그대로 동작합니다.
+
+`UserController.java`
+```java
+if (form.password1() != null && !form.password1().equals(form.password2())) {
+    bindingResult.rejectValue("password2", "passwordInCorrect", "06-password2-2개의 비밀번호가 일치하지 않습니다.");
+}
+if (!bindingResult.hasFieldErrors("username") && userService.existsByUsername(form.username())) {
+    bindingResult.rejectValue("username", "duplicate", "03-username-이미 사용 중인 사용자ID입니다.");
+}
+if (!bindingResult.hasFieldErrors("email") && userService.existsByEmail(form.email())) {
+    bindingResult.rejectValue("email", "duplicate", "09-email-이미 사용 중인 이메일입니다.");
+}
+```
+
+**결과**
+![중복과 불일치](docs/steps/022-04-1.jpg)

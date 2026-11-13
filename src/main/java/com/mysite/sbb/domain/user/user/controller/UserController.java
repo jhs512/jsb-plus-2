@@ -46,6 +46,21 @@ public class UserController {
             @ModelAttribute("form") @Valid UserCreateForm form,
             BindingResult bindingResult
     ) {
+        // 어노테이션으로 표현하기 어려운 검증은 직접 하고, 같은 형식의 메시지로 에러를 추가한다.
+        if (form.password1() != null && !form.password1().equals(form.password2())) {
+            bindingResult.rejectValue("password2", "passwordInCorrect",
+                    "06-password2-2개의 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 교재는 저장 시 예외(DataIntegrityViolationException)를 잡지만, 저장 전에 미리 확인해 필드별 메시지를 준다.
+        if (!bindingResult.hasFieldErrors("username") && userService.existsByUsername(form.username())) {
+            bindingResult.rejectValue("username", "duplicate", "03-username-이미 사용 중인 사용자ID입니다.");
+        }
+
+        if (!bindingResult.hasFieldErrors("email") && userService.existsByEmail(form.email())) {
+            bindingResult.rejectValue("email", "duplicate", "09-email-이미 사용 중인 이메일입니다.");
+        }
+
         if (bindingResult.hasErrors()) return "signup_form";
 
         userService.create(form.username(), form.email(), form.password1());

@@ -48,6 +48,24 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("비밀번호 확인 불일치 -> password2 에러")
+    void t2() throws Exception {
+        mvc.perform(signup("newuser", "1234", "4321", "newuser@test.com"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("signup_form"))
+                .andExpect(model().attributeHasFieldErrorCode("form", "password2", "passwordInCorrect"));
+    }
+
+    @Test
+    @DisplayName("이미 있는 사용자ID -> username 에러")
+    void t3() throws Exception {
+        mvc.perform(signup("dupuser", "1234", "1234", "dup1@test.com"));
+        mvc.perform(signup("dupuser", "1234", "1234", "dup2@test.com"))
+                .andExpect(view().name("signup_form"))
+                .andExpect(model().attributeHasFieldErrorCode("form", "username", "duplicate"));
+    }
+
+    @Test
     @DisplayName("이메일 형식 오류 -> email 에러")
     void t4() throws Exception {
         mvc.perform(signup("newuser", "1234", "1234", "not-email"))
