@@ -34,4 +34,6 @@ dependencies {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	// 테스트는 기본으로 test 프로파일(메모리 DB). @ActiveProfiles("test")를 빠뜨려도 개발용 파일 DB(db_dev)를 쓰지 않는다.
+	systemProperty("spring.profiles.active", "test")
 }

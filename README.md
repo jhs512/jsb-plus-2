@@ -172,3 +172,38 @@ spring:
 
 > **교재와 다른 점** DB 하나(`~/local`) → dev/test 분리. 개발 DB 파일(`db_dev.mv.db`)은 `.gitignore`에 추가했습니다.
 > **확인해 볼 것** 앱을 한 번 실행하면 프로젝트 폴더에 `db_dev.mv.db` 파일이 생깁니다.
+
+### 003-02 DB 설정, 테스트는 항상 test 프로파일
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/003-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/003-02)
+
+**무엇을** Gradle 테스트 태스크에 `spring.profiles.active=test`를 지정했습니다. 그리고 일부러 `@ActiveProfiles`를 붙이지 않은 확인용 테스트를 만들었습니다.
+
+**왜** 테스트 클래스마다 `@ActiveProfiles("test")`를 붙이는 방식은 하나만 빠뜨려도 기본 프로파일(dev)이 적용됩니다. 그러면 그 테스트가 개발용 파일 DB를 건드립니다. 실수가 생기지 않도록 테스트의 기본값을 아예 test로 고정합니다.
+
+`build.gradle.kts`
+```diff
+  tasks.withType<Test> {
+      useJUnitPlatform()
++     systemProperty("spring.profiles.active", "test")
+  }
+```
+
+`DefaultTestProfileTest.java`
+```java
+@SpringBootTest // @ActiveProfiles 일부러 없음
+class DefaultTestProfileTest {
+    @Value("${spring.datasource.url}")
+    private String datasourceUrl;
+
+    @Test
+    void t1() {
+        assertThat(datasourceUrl).startsWith("jdbc:h2:mem:");
+    }
+}
+```
+
+**결과** 설정 전에는 이 테스트가 **개발용 파일 DB**(`jdbc:h2:./db_dev`)를 쓰고 있어서 실패했습니다. 설정 후에는 모든 테스트가 메모리 DB로 실행됩니다.
+![변경 전](docs/steps/003-02-1.jpg)
+![변경 후](docs/steps/003-02-2.jpg)
+
+> **교재와 다른 점** 교재에는 없는 안전장치입니다. 1차 구현에서는 마지막(040)에야 넣었는데, DB 설정 단계로 옮겼습니다.
