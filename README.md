@@ -452,3 +452,25 @@ class QuestionRepositoryTest {
 
 **결과**
 ![테스트 결과](docs/steps/005-02-1.jpg)
+
+### 005-03 리포지터리, 쿼리 메서드 명명 규칙
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/005-03) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/005-03)
+
+**무엇을** 메서드 이름 규칙(`findBy` + 필드 이름 + 조건)으로 조회 메서드 5개를 만들고 테스트했습니다.
+
+**왜** 메서드 이름만 규칙대로 지으면 Spring Data JPA가 SQL을 만들어 줍니다. 실제로 어떤 WHERE 절이 나가는지 로그로 확인합니다(교재 2-05, 14163 16·17강).
+
+`QuestionRepository.java`
+```diff
+  public interface QuestionRepository extends JpaRepository<Question, Integer> {
++     Optional<Question> findBySubject(String subject);
++     Optional<Question> findBySubjectAndContent(String subject, String content);
++     List<Question> findBySubjectLike(String subject);        // %는 호출하는 쪽에서
++     List<Question> findBySubjectIn(List<String> subjects);
++     List<Question> findByIdLessThanOrderByIdDesc(int id);
+  }
+```
+
+**결과**
+![테스트 결과](docs/steps/005-03-1.jpg)
+![메서드 이름과 SQL](docs/steps/005-03-2.jpg)
