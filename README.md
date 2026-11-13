@@ -207,3 +207,30 @@ class DefaultTestProfileTest {
 ![변경 후](docs/steps/003-02-2.jpg)
 
 > **교재와 다른 점** 교재에는 없는 안전장치입니다. 1차 구현에서는 마지막(040)에야 넣었는데, DB 설정 단계로 옮겼습니다.
+
+### 003-03 DB 설정, SQL 로그 출력
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/003-03) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/003-03)
+
+**무엇을** JPA가 실행하는 SQL을 콘솔에 보기 좋게 출력하도록 설정했습니다. `?` 자리에 들어간 실제 값과 트랜잭션 시작·종료도 함께 출력합니다.
+
+**왜** JPA는 SQL을 대신 만들어 줍니다. 그래서 "지금 무슨 SQL이 나갔는지"를 눈으로 확인하는 습관이 중요합니다(14163 6강). 다음 단계부터 엔티티를 만들면 이 로그로 테이블 생성 SQL을 확인합니다.
+
+`application.yaml`
+```diff
+  jpa:
+    hibernate:
+      ddl-auto: update
++   show-sql: true                 # 실행되는 SQL 출력
++   properties:
++     hibernate:
++       format_sql: true           # 줄바꿈 정렬
++       highlight_sql: true        # 색상 강조
++       use_sql_comments: true     # 어떤 JPA 동작에서 나온 SQL인지 주석
++ logging:
++   level:
++     org.hibernate.orm.jdbc.bind: TRACE      # ? 자리에 바인딩된 실제 값
++     org.hibernate.orm.jdbc.extract: TRACE   # 조회 결과 값
++     org.springframework.transaction.interceptor: TRACE  # 트랜잭션 시작/종료
+```
+
+> **확인해 볼 것** 아직 엔티티가 없어서 출력될 SQL이 없습니다. 바로 다음 단계(004-01)에서 `create table question …`이 이 형식으로 찍힙니다.
