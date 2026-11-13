@@ -11,7 +11,10 @@
     <!-- th:each: questionList의 요소를 하나씩 question 변수에 담아 tr을 반복 생성 -->
     <tr th:each="question : ${questionList}">
         <td th:text="${question.id}">1</td>
-        <td th:text="${question.subject}">제목</td>
+        <td>
+            <!-- @{...}: URL 생성, |...|: 문자열 안에 변수 치환 (14163 35강) -->
+            <a th:href="@{|/question/detail/${question.id}|}" th:text="${question.subject}">제목</a>
+        </td>
         <!-- #temporals: 날짜 포맷 유틸리티 -->
         <td th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm')}">2026-01-01 00:00</td>
     </tr>

@@ -26,7 +26,8 @@ class QuestionControllerTest {
         mvc.perform(get("/question/list"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("sbb가 무엇인가요?")))
-                .andExpect(content().string(containsString("스프링부트 모델 질문입니다.")));
+                .andExpect(content().string(containsString("스프링부트 모델 질문입니다.")))
+                .andExpect(content().string(containsString("href=\"/question/detail/2\"")));
     }
 
     @Test

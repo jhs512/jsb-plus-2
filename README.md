@@ -849,3 +849,26 @@ public Question getQuestion(int id) {
 ![질문 상세](docs/steps/010-01-1.jpg)
 
 > **확인해 볼 것** 없는 번호(`/question/detail/999`)로 접속하면 어떻게 될까요? 010-03에서 다룹니다.
+
+### 010-02 상세 페이지, 목록 제목을 상세로 연결
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/010-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/010-02)
+
+**무엇을** 목록의 제목을 상세 페이지 링크로 만들었습니다.
+
+**왜** 목록에서 클릭해 상세로 이동합니다(교재 2-10, 14163 35강 2단계). 타임리프에서 링크를 만드는 두 문법(`@{}`와 `||`)을 함께 씁니다.
+
+`question_list.html`
+```diff
+- <td th:text="${question.subject}">제목</td>
++ <td>
++     <a th:href="@{|/question/detail/${question.id}|}" th:text="${question.subject}">제목</a>
++ </td>
+```
+
+| 문법 | 용도 |
+|---|---|
+| `@{...}` | URL 만들기. 앱 경로(context path)가 있으면 자동으로 앞에 붙인다 |
+| `\|...\|` | 문자열 안에 변수 끼워 넣기 (`"/question/detail/" + id` 대신) |
+
+**결과**
+![제목 링크](docs/steps/010-02-1.jpg)
