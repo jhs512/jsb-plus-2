@@ -2713,3 +2713,37 @@ public String profile(Principal principal, Model model) {
 ![프로필](docs/steps/034-01-1.jpg)
 
 > **확인해 볼 것** 메서드 이름에서 `Top10`을 `Top3`으로 바꾸고 실행하면 SQL 로그의 `fetch first ? rows only` 값이 바뀝니다. 이름의 철자가 틀리면(예: `findTop10ByAutor`) 앱이 아예 뜨지 않습니다. 쿼리를 만들 수 없기 때문입니다.
+
+### 035-01 최근 활동, 최근 답변과 댓글
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/035-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/035-01)
+
+**무엇을** 최근 활동 화면(`/question/recent`)을 만들었습니다. 사이트 전체에서 가장 최근 답변 10개, 최근 댓글 10개를 보여 줍니다. 답변 링크는 027의 앵커(`#answer_id`)로 바로 그 답변 위치를 엽니다.
+
+**왜** 도전과제 3-14 "최근 답변과 최근 댓글". 질문 목록은 질문 작성 순서라 오래된 질문에 새 답변이 달려도 알 수 없습니다.
+
+`AnswerRepository.java` / `CommentRepository.java`
+```diff
++ // 작성일시가 같으면 id가 큰 것(나중에 저장된 것)이 먼저
++ List<Answer> findTop10ByOrderByCreateDateDescIdDesc();
+```
+
+`QuestionController.java`
+```java
+@GetMapping("/recent")
+@Transactional(readOnly = true)   // 화면에서 answer.question.subject 같은 LAZY 연관을 읽는다
+public String recent(Model model) {
+    model.addAttribute("answers", answerService.getRecent());
+    model.addAttribute("comments", commentService.getRecent());
+    return "question_recent";
+}
+```
+
+`question_recent.html`
+```html
+<a th:href="@{|/question/detail/${answer.question.id}#answer_${answer.id}|}" th:text="${answer.content}">답변</a>
+```
+
+**결과**
+![최근 활동](docs/steps/035-01-1.jpg)
+
+> **확인해 볼 것** 정렬 조건에서 `IdDesc`를 빼면 어떻게 될까요? 초기 데이터처럼 같은 시각(밀리초 이하까지 같은 경우)에 여러 건이 저장되면 순서가 매번 달라질 수 있습니다. 정렬 기준이 겹칠 때를 대비해 고유한 값(id)을 마지막 기준으로 두는 습관입니다.

@@ -1,0 +1,39 @@
+<html layout:decorate="~{layout}">
+<head>
+    <title>최근 활동</title>
+</head>
+<div layout:fragment="content" class="container my-3">
+    <div class="row">
+        <div class="col-md-6">
+            <h5 class="border-bottom py-2">최근 답변</h5>
+            <ul class="list-group mb-3">
+                <li class="list-group-item" th:each="a : ${answers}">
+                    <!-- 답변 위치로 바로 이동 (앵커, 교재 3-11) -->
+                    <a th:href="@{|/question/detail/${a.question.id}#answer_${a.id}|}"
+                       th:text="${#strings.abbreviate(a.content, 50)}">답변</a>
+                    <div class="small text-secondary">
+                        <span th:text="${a.author?.username}">user1</span> ·
+                        <span th:text="${#temporals.format(a.createDate, 'yyyy-MM-dd HH:mm')}"></span> ·
+                        <span th:text="${a.question.subject}">질문 제목</span>
+                    </div>
+                </li>
+                <li class="list-group-item text-secondary" th:if="${answers.isEmpty()}">없음</li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h5 class="border-bottom py-2">최근 댓글</h5>
+            <ul class="list-group mb-3">
+                <li class="list-group-item" th:each="c : ${comments}">
+                    <a th:href="@{|/question/detail/${c.rootQuestionId}|}"
+                       th:text="${#strings.abbreviate(c.content, 50)}">댓글</a>
+                    <div class="small text-secondary">
+                        <span th:text="${c.author?.username}">user1</span> ·
+                        <span th:text="${#temporals.format(c.createDate, 'yyyy-MM-dd HH:mm')}"></span>
+                    </div>
+                </li>
+                <li class="list-group-item text-secondary" th:if="${comments.isEmpty()}">없음</li>
+            </ul>
+        </div>
+    </div>
+</div>
+</html>

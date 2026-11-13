@@ -12,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AnswerService {
@@ -31,6 +33,10 @@ public class AnswerService {
 
         Pageable pageable = PageRequest.of(page, 5, Sort.by(Sort.Order.desc("createDate"), Sort.Order.desc("id")));
         return answerRepository.findByQuestion(question, pageable);
+    }
+
+    public List<Answer> getRecent() {
+        return answerRepository.findTop10ByOrderByCreateDateDescIdDesc();
     }
 
     public void flush() {

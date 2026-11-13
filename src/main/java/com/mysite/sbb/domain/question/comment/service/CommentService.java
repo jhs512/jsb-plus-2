@@ -6,10 +6,16 @@ import com.mysite.sbb.global.exception.DataNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
+
+    public List<Comment> getRecent() {
+        return commentRepository.findTop10ByOrderByCreateDateDescIdDesc();
+    }
 
     public Comment getComment(int id) {
         return commentRepository.findById(id)

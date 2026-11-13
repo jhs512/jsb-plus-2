@@ -229,4 +229,15 @@ class QuestionControllerTest {
                 .param("category", "free").param("subject", "자유게시판으로 이동").param("content", "내용"));
         org.assertj.core.api.Assertions.assertThat(questionService.getQuestion(1).getCategory().getCode()).isEqualTo("free");
     }
+
+    @Test
+    @DisplayName("GET /question/recent -> 최근 답변(앵커 링크)과 최근 댓글")
+    void t19() throws Exception {
+        mvc.perform(post("/comment/create/question/1").with(csrf()).param("content", "최근 댓글 테스트"));
+
+        mvc.perform(get("/question/recent"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/question/detail/2#answer_1")))
+                .andExpect(content().string(containsString("최근 댓글 테스트")));
+    }
 }

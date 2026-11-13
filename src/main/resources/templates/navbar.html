@@ -12,6 +12,9 @@
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/question/list}">질문 목록</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/question/recent}">최근 활동</a>
+                </li>
                 <li class="nav-item" th:each="c : ${categories}">
                     <a class="nav-link" th:href="@{/question/list(category=${c.code})}" th:text="${c.name}">질문답변</a>
                 </li>

@@ -4,6 +4,7 @@ import com.mysite.sbb.domain.question.answer.controller.AnswerController.AnswerF
 import com.mysite.sbb.domain.question.answer.service.AnswerService;
 import com.mysite.sbb.domain.question.category.entity.Category;
 import com.mysite.sbb.domain.question.category.service.CategoryService;
+import com.mysite.sbb.domain.question.comment.service.CommentService;
 import com.mysite.sbb.domain.question.question.entity.Question;
 import com.mysite.sbb.domain.question.question.service.QuestionService;
 import com.mysite.sbb.domain.user.user.service.UserService;
@@ -38,6 +39,7 @@ public class QuestionController {
     private final UserService userService;
     private final AnswerService answerService;
     private final CategoryService categoryService;
+    private final CommentService commentService;
 
     // @ResponseBody가 없으므로 반환값 "question_list"는 템플릿 이름이 된다.
     // -> templates/question_list.html 을 렌더링한 HTML이 응답 본문이 된다. (14163 28강)
@@ -55,6 +57,16 @@ public class QuestionController {
         model.addAttribute("kw", kw); // 검색창에 검색어를 유지하기 위해
 
         return "question_list";
+    }
+
+    // 최근 답변과 최근 댓글 (도전과제 3-14)
+    @GetMapping("/recent")
+    @Transactional(readOnly = true)
+    public String recent(Model model) {
+        model.addAttribute("answers", answerService.getRecent());
+        model.addAttribute("comments", commentService.getRecent());
+
+        return "question_recent";
     }
 
     // {id} 자리의 값이 @PathVariable int id 로 들어온다. 예) /question/detail/2 -> id = 2
