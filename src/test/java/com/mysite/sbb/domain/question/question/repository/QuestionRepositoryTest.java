@@ -6,6 +6,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -131,5 +133,22 @@ class QuestionRepositoryTest {
         questionRepository.flush(); // DELETE answer ... -> DELETE question ... 순서로 실행
 
         assertThat(questionRepository.findById(2)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("검색: 제목/내용/글쓴이/답변 내용/답변 글쓴이")
+    void t13() {
+        assertThat(search("sbb가")).containsExactly(1);          // 질문 제목
+        assertThat(search("자동으로 생성되나요")).containsExactly(2); // 질문 내용
+        assertThat(search("네 자동으로")).containsExactly(2);      // 답변 내용
+        assertThat(search("user2")).containsExactly(2);           // 답변 글쓴이
+        assertThat(search("user1")).containsExactlyInAnyOrder(1, 2); // 질문 글쓴이
+        assertThat(search("")).hasSize(2);                         // 빈 검색어 = 전체
+        assertThat(search("없는검색어")).isEmpty();
+    }
+
+    private List<Integer> search(String kw) {
+        Page<Question> page = questionRepository.findAllByKeyword(kw, PageRequest.of(0, 10));
+        return page.getContent().stream().map(Question::getId).toList();
     }
 }

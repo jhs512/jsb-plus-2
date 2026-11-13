@@ -19,8 +19,13 @@ public class QuestionService {
 
     // page: 0부터 시작하는 페이지 번호. 한 페이지에 10개, 최신 글이 먼저. (교재 3-02)
     public Page<Question> getList(int page) {
+        return getList(page, "");
+    }
+
+    // kw: 검색어. 빈 문자열이면 like '%%' 가 되어 전체 조회 (교재 3-13)
+    public Page<Question> getList(int page, String kw) {
         Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("createDate"), Sort.Order.desc("id")));
-        return questionRepository.findAll(pageable); // SELECT ... LIMIT 10 OFFSET page*10 + SELECT COUNT(*)
+        return questionRepository.findAllByKeyword(kw, pageable); // SELECT ... LIMIT 10 OFFSET page*10 + SELECT COUNT(*)
     }
 
     public Question getQuestion(int id) {

@@ -2255,3 +2255,36 @@ void t2() {   // [실험]
 | 변경 전 (028-04) | 변경 후 |
 |---|---|
 | ![전](docs/steps/028-04-1.jpg) | ![후](docs/steps/028-05-1.jpg) |
+
+### 029-01 검색, JPQL로 질문·답변·글쓴이 통합 검색
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/029-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/029-01)
+
+**무엇을** 질문 제목, 질문 내용, 질문 글쓴이, 답변 내용, 답변 글쓴이 중 하나라도 검색어를 포함하면 조회하는 JPQL 쿼리를 만들었습니다.
+
+**왜** 교재 3-13. 조건이 많아서 메서드 이름 규칙으로는 너무 길어지므로 JPQL(엔티티 기준 SQL)을 직접 씁니다. 교재는 Specification 방식도 보여 주지만 여기서는 `@Query` 하나로 정리합니다.
+
+`QuestionRepository.java`
+```java
+@Query("""
+        select distinct q
+        from Question q
+        left join q.author u1
+        left join q.answers a
+        left join a.author u2
+        where q.subject like %:kw%
+           or q.content like %:kw%
+           or u1.username like %:kw%
+           or a.content like %:kw%
+           or u2.username like %:kw%
+        """)
+Page<Question> findAllByKeyword(@Param("kw") String kw, Pageable pageable);
+```
+
+| 키워드 | 이유 |
+|---|---|
+| `left join` | 답변이 없는 질문도 결과에 나와야 한다 |
+| `distinct` | 답변 여러 개가 검색어와 맞아도 질문은 한 번만 |
+
+**결과** 테스트로 다섯 가지 검색 대상을 모두 확인했고, 로그에서 JPQL이 실제 SQL로 바뀐 모습을 볼 수 있습니다.
+![테스트](docs/steps/029-01-1.jpg)
+![JPQL과 SQL](docs/steps/029-01-2.jpg)
