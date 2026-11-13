@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 자바스크립트로 POST/PUT/DELETE 요청을 만들 때 사용할 CSRF 토큰 (14168 46강) -->
+    <meta name="_csrf" th:content="${_csrf.token}">
     <!-- 각 페이지의 <title> + 레이아웃의 <title>을 합친다. 예) 질문 목록 | SBB (14168 45강) -->
     <title layout:title-pattern="$CONTENT_TITLE | $LAYOUT_TITLE">SBB</title>
     <!-- 부트스트랩, 폰트는 파일을 내려받지 않고 CDN 주소로 가져온다. (14163 39강) -->

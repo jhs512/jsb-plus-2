@@ -1528,3 +1528,29 @@ public SecurityFilterChain filterChain(HttpSecurity http) {
 ![답변 폼 302](docs/steps/021-03-2.jpg)
 
 > **CSRF란?** 다른 사이트가 로그인한 사용자 몰래 우리 사이트로 POST를 보내는 공격입니다. 우리 사이트가 발급한 토큰이 있는 요청만 받아서 막습니다.
+
+### 021-04 스프링 시큐리티, action 없는 폼에 CSRF 토큰
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/021-04) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/021-04)
+
+**무엇을** `action`을 생략한 질문 폼에 CSRF 토큰을 직접 넣었습니다. 레이아웃 `<head>`에도 토큰을 `<meta>`로 넣어 두었습니다(이후 자바스크립트로 요청을 만들 때 사용).
+
+**왜** 앞 실험에서 본 403을 해결합니다(14168 46강).
+
+`question_form.html`
+```diff
+  <form th:object="${form}" method="post">
++     <!-- th:action이 없는 폼은 토큰이 자동으로 들어가지 않으므로 직접 넣는다 -->
++     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+```
+
+`layout.html`
+```diff
+  <meta name="viewport" content="width=device-width, initial-scale=1">
++ <meta name="_csrf" th:content="${_csrf.token}">
+```
+
+**결과** 폼 데이터에 `_csrf`가 실려 가고 302로 성공합니다.
+
+| 변경 전: 403 (021-03) | 변경 후: 302 |
+|---|---|
+| ![전](docs/steps/021-03-1.jpg) | ![후](docs/steps/021-04-1.jpg) |
