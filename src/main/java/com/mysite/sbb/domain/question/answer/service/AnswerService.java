@@ -27,4 +27,9 @@ public class AnswerService {
     public void modify(Answer answer, String content) {
         answer.modify(content);
     }
+
+    // answerRepository.delete 대신 질문의 답변 목록에서 제거 -> orphanRemoval로 DELETE (14168 37강)
+    public void delete(Answer answer) {
+        answer.getQuestion().deleteAnswer(answer);
+    }
 }

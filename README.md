@@ -1958,3 +1958,30 @@ public String modify(@PathVariable int id, @ModelAttribute("answerForm") @Valid 
 **결과**
 ![답변 수정 버튼](docs/steps/025-04-1.jpg)
 ![PUT 302](docs/steps/025-04-2.jpg)
+
+### 025-05 수정과 삭제, [실험] 목록에서 빼기만 하면 답변이 지워지지 않는다
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/025-05) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/025-05)
+
+**무엇을** 답변 삭제를 `DELETE /answer/delete/{id}`로 만들었습니다. 이때 `answerRepository.delete()`를 쓰지 않고, 질문의 답변 목록에서 **빼기만** 해 봤습니다. **(실험 커밋)**
+
+**왜** 답변 추가를 `question.addAnswer()`(목록에 추가 → cascade PERSIST로 INSERT)로 했듯이, 삭제도 "목록에서 제거"로 하고 싶습니다(14168 37강). 정말 그것만으로 DB에서도 지워지는지 확인합니다.
+
+`Question.java`
+```java
+public boolean deleteAnswer(Answer answer) {
+    return answers.remove(answer);   // 자바 리스트에서만 뺀다
+}
+```
+
+`AnswerService.java`
+```java
+public void delete(Answer answer) {
+    answer.getQuestion().deleteAnswer(answer);
+}
+```
+
+**결과** 요청은 302로 성공했지만, 답변은 화면에도 DB에도 **그대로 남아 있습니다.** DELETE SQL이 실행되지 않았습니다.
+![삭제했는데 남아 있다](docs/steps/025-05-1.jpg)
+![DB에도 남아 있다](docs/steps/025-05-2.jpg)
+
+> **왜?** `cascade = REMOVE`는 "부모(질문)를 삭제할 때 자식도 삭제"입니다. 부모의 목록에서 **자식 하나를 빼는 것**은 다른 이야기입니다. 그건 `orphanRemoval`이 담당합니다. 다음 커밋에서 해결합니다.

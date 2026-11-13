@@ -64,4 +64,8 @@ public class Question extends BaseEntity {
 
         return answer;
     }
+
+    public boolean deleteAnswer(Answer answer) {
+        return answers.remove(answer); // [실험] 자바 리스트에서만 빼면 DB에서도 지워질까?
+    }
 }

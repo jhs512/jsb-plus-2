@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -97,5 +98,17 @@ public class AnswerController {
         answerService.modify(answer, answerForm.content());
 
         return "redirect:/question/detail/%d".formatted(answer.getQuestion().getId());
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/delete/{id}")
+    @Transactional
+    public String delete(@PathVariable int id, Principal principal) {
+        Answer answer = getAnswerForAuthor(id, principal);
+        int questionId = answer.getQuestion().getId();
+
+        answerService.delete(answer);
+
+        return "redirect:/question/detail/%d".formatted(questionId);
     }
 }

@@ -43,6 +43,9 @@
             <div class="my-3" sec:authorize="isAuthenticated()"
                  th:if="${answer.author != null and #authentication.name == answer.author.username}">
                 <a th:href="@{|/answer/modify/${answer.id}|}" class="btn btn-sm btn-outline-secondary">수정</a>
+                <a th:href="@{|/answer/delete/${answer.id}|}" method="DELETE"
+                   onclick="return confirm('정말로 삭제하시겠습니까?');"
+                   class="btn btn-sm btn-outline-secondary">삭제</a>
             </div>
         </div>
     </div>
