@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -83,5 +84,51 @@ class QuestionRepositoryTest {
         // answers는 LAZY라 아직 SELECT 되지 않았고, 이제는 가져올 연결이 없다.
         assertThatThrownBy(() -> q2.getAnswers().size())
                 .isInstanceOf(LazyInitializationException.class);
+    }
+
+    @Test
+    @DisplayName("@Transactional 안에서는 LAZY 컬렉션을 읽을 수 있다")
+    @Transactional // 테스트 메서드 전체가 하나의 트랜잭션 -> 끝나면 롤백
+    void t9() {
+        Question q2 = questionRepository.findById(2).get();
+
+        // 이 시점에 SELECT ... FROM answer WHERE question_id = 2 가 실행된다.
+        assertThat(q2.getAnswers()).hasSize(1);
+        assertThat(q2.getAnswers().get(0).getContent()).isEqualTo("네 자동으로 생성됩니다.");
+    }
+
+    @Test
+    @DisplayName("데이터 수정: 테스트가 끝나면 롤백되어 다른 테스트에 영향이 없다")
+    @Transactional
+    void t10() {
+        Question q = questionRepository.findById(1).get();
+        q.setSubject("수정된 제목");
+        questionRepository.flush(); // UPDATE 를 지금 바로 실행 (로그로 확인용)
+
+        assertThat(questionRepository.findById(1).get().getSubject()).isEqualTo("수정된 제목");
+        // 이 메서드가 끝나면 롤백 -> t2, t3는 여전히 "sbb가 무엇인가요?"를 본다. (14163 18강)
+    }
+
+    @Test
+    @DisplayName("데이터 삭제")
+    @Transactional
+    void t11() {
+        assertThat(questionRepository.count()).isEqualTo(2);
+
+        Question q = questionRepository.findById(1).get();
+        questionRepository.delete(q);
+
+        assertThat(questionRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("질문을 삭제하면 cascade REMOVE로 답변도 함께 삭제된다")
+    @Transactional
+    void t12() {
+        Question q2 = questionRepository.findById(2).get();
+        questionRepository.delete(q2);
+        questionRepository.flush(); // DELETE answer ... -> DELETE question ... 순서로 실행
+
+        assertThat(questionRepository.findById(2)).isEmpty();
     }
 }

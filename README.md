@@ -495,3 +495,28 @@ void t8() {
 
 **결과** 예외가 나는 것이 확인되어 테스트는 통과합니다.
 ![테스트 결과](docs/steps/005-04-1.jpg)
+
+### 005-05 리포지터리, @Transactional로 LAZY 조회와 수정·삭제 테스트
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/005-05) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/005-05)
+
+**무엇을** 테스트 메서드에 `@Transactional`을 붙여 LAZY 조회, 수정, 삭제, cascade 삭제를 테스트했습니다.
+
+**왜** 테스트 메서드 전체를 하나의 트랜잭션으로 묶으면 두 가지가 해결됩니다(14163 18·25강).
+1. 메서드가 끝날 때까지 DB 연결이 유지되어 **LAZY 조회가 된다.**
+2. 메서드가 끝나면 **롤백**되어, 수정·삭제 테스트가 다른 테스트에 영향을 주지 않는다.
+
+`QuestionRepositoryTest.java`
+```java
+@Test
+@Transactional   // 테스트 메서드 전체가 하나의 트랜잭션 → 끝나면 롤백
+void t10() {
+    Question q = questionRepository.findById(1).get();
+    q.setSubject("수정된 제목");
+    questionRepository.flush();   // UPDATE를 지금 바로 실행(로그 확인용)
+
+    assertThat(questionRepository.findById(1).get().getSubject()).isEqualTo("수정된 제목");
+}   // 롤백 → 다른 테스트는 여전히 "sbb가 무엇인가요?"를 본다
+```
+
+**결과** 바로 앞의 실험(트랜잭션 밖 LAZY)과 달리, 같은 `getAnswers()`가 정상 동작합니다.
+![테스트 결과](docs/steps/005-05-1.jpg)
