@@ -266,3 +266,27 @@ public class Question {
 ![create table 로그](docs/steps/004-01-2.jpg)
 
 > **확인해 볼 것** `@Setter`는 지금은 편하지만, 009-02에서 생성자와 의미 있는 메서드로 바꿉니다(14168 방식).
+
+### 004-02 엔티티, Answer와 @ManyToOne(LAZY)
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/004-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/004-02)
+
+**무엇을** 답변을 저장할 `Answer` 엔티티를 만들고, 답변이 어느 질문에 속하는지 `@ManyToOne`으로 연결했습니다.
+
+**왜** 답변 여러 개(N)가 질문 하나(1)에 속합니다. `@ManyToOne`을 붙이면 answer 테이블에 `question_id` 외래키 컬럼이 생깁니다. `@ManyToOne`의 기본값은 즉시 로딩(EAGER)이라 답변을 조회할 때마다 질문도 함께 조회합니다. 그래서 필요할 때만 조회하는 지연 로딩(LAZY)을 명시합니다(14163 25강).
+
+`Answer.java` (새 파일, 핵심)
+```java
+@Entity
+public class Answer {
+    // ... id, content, createDate
+
+    @ManyToOne(fetch = LAZY)   // 기본값 EAGER 대신 LAZY
+    private Question question; // → question_id 컬럼 + 외래키
+}
+```
+
+**결과** `ANSWER` 테이블에 `QUESTION_ID` 컬럼과 `QUESTION`을 가리키는 외래키 제약이 생겼습니다.
+![ANSWER 테이블과 외래키](docs/steps/004-02-1.jpg)
+
+> **교재와 다른 점** 교재는 `@ManyToOne`만 씁니다(EAGER). 여기서는 `fetch = LAZY`를 붙였습니다.
+> **확인해 볼 것** 외래키가 있으니 존재하지 않는 질문 번호(예: 999)로 답변을 INSERT하면 DB가 거부합니다.
