@@ -1199,3 +1199,27 @@ public String create(@ModelAttribute("form") @Valid QuestionForm form,
 
 **결과**
 ![정렬된 에러](docs/steps/016-03-1.jpg)
+
+### 016-04 질문 등록, [실험] 강사 방식 focus 스크립트는 콘솔 에러
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/016-04) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/016-04)
+
+**무엇을** 첫 번째 에러 칸으로 커서를 옮기는 스크립트를 **강사 방식 그대로** 넣었습니다. **(실험 커밋)**
+
+**왜** 강사(14168 25강)는 "현재까지 나온 마지막 form"을 찾고 `setTimeout`으로 조금 늦게 focus 합니다. 그런데 이 프로젝트에서는 에러 프래그먼트가 **폼 맨 위**에 있습니다. 실제로 동작하는지 확인합니다.
+
+`form_errors.html`
+```html
+<script>
+    const forms = document.querySelectorAll('form');
+    const lastForm = forms[forms.length - 1];
+    const errorFieldName = lastForm.querySelector('ul > li')?.dataset?.errorFieldName || '';
+    if (errorFieldName.length > 0) {
+        setTimeout(() => lastForm[errorFieldName].focus());
+    }
+</script>
+```
+
+**결과** 제목만 쓰고 저장하면 '내용' 칸에 에러가 나는데, 커서는 이동하지 않고 콘솔에 에러가 납니다.
+![콘솔 에러](docs/steps/016-04-1.jpg)
+
+> **왜 실패할까?** 이 스크립트는 폼 맨 위(에러 목록 바로 아래)에서 실행됩니다. 그 순간 브라우저는 아직 아래쪽 `<textarea name="content">`를 읽지 않았습니다. 그래서 `lastForm["content"]`가 `undefined`입니다. `setTimeout`으로 조금 늦춰도, 그때까지 문서를 다 읽었다는 보장이 없습니다.

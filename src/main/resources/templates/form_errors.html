@@ -1,4 +1,4 @@
-<!-- 폼 에러 공통 프래그먼트 (14168 23~24강)
+<!-- 폼 에러 공통 프래그먼트 (14168 23~25강)
      사용법: <form th:object="${form}"> 안에서 <th:block th:replace="~{form_errors :: formErrorsFragment}"></th:block>
      메시지 형식: "순번-필드명-내용" (예: 01-subject-제목은 필수항목입니다.) -->
 <th:block th:fragment="formErrorsFragment">
@@ -13,4 +13,13 @@
                 th:text="${errMsg}"
         ></li>
     </ul>
+    <script>
+        // 강사 방식(14168 25강): 현재까지 나온 마지막 form을 찾아 첫 번째 에러 필드에 focus
+        const forms = document.querySelectorAll('form');
+        const lastForm = forms[forms.length - 1];
+        const errorFieldName = lastForm.querySelector('ul > li')?.dataset?.errorFieldName || '';
+        if (errorFieldName.length > 0) {
+            setTimeout(() => lastForm[errorFieldName].focus());
+        }
+    </script>
 </th:block>
