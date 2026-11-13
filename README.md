@@ -1477,3 +1477,36 @@ public class DevInitData {
 ![테스트 실패](docs/steps/021-01-3.jpg)
 
 > **확인해 볼 것** 다음 커밋에서 `SecurityFilterChain`을 직접 설정해 모든 요청을 허용하고, 테스트를 다시 통과시킵니다.
+
+### 021-02 스프링 시큐리티, SecurityFilterChain 설정
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/021-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/021-02)
+
+**무엇을** `SecurityFilterChain`을 직접 설정했습니다. 지금은 모든 요청을 허용하고, H2 콘솔이 동작하도록 예외를 둡니다. 테스트의 POST 요청에는 `.with(csrf())`를 붙였습니다.
+
+**왜** 로그인 기능을 만들기 전까지는 모두 허용하고, 나중에 필요한 곳만 막습니다. 정적 파일은 `/resource/**` 한 줄로 허용합니다(013에서 미리 `resource` 폴더에 둔 이유). 교재의 `AntPathRequestMatcher`는 Spring Security 7(Boot 4)에서 **제거**되어 문자열 패턴을 씁니다.
+
+`SecurityConfig.java` (새 파일)
+```java
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) {
+    http
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/resource/**").permitAll()     // 정적 파일 (14168 46강)
+            .requestMatchers("/h2-console/**").permitAll()
+            .anyRequest().permitAll())                       // 지금은 모두 허용
+        .headers(h -> h.frameOptions(FrameOptionsConfig::sameOrigin))   // H2 콘솔은 iframe 사용
+        .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"));  // H2 콘솔 폼엔 토큰 없음
+    return http.build();
+}
+```
+
+`QuestionControllerTest.java` 등
+```diff
+- mvc.perform(post("/question/create")
++ mvc.perform(post("/question/create").with(csrf())   // 테스트용 CSRF 토큰
+```
+
+**결과** 다시 목록이 200으로 열리고, 테스트 29건이 모두 통과합니다.
+![200](docs/steps/021-02-1.jpg)
+
+> **교재와 다른 점** `new AntPathRequestMatcher("/**")` → `"/**"` 문자열. 교재 코드를 그대로 쓰면 컴파일되지 않습니다.

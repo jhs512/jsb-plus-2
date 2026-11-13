@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -68,7 +69,7 @@ class QuestionControllerTest {
     @Test
     @DisplayName("POST /question/create -> 저장 후 목록으로 리다이렉트")
     void t5() throws Exception {
-        mvc.perform(post("/question/create")
+        mvc.perform(post("/question/create").with(csrf())
                         .param("subject", "새 질문 제목")
                         .param("content", "새 질문 내용"))
                 .andExpect(status().isFound())
@@ -81,7 +82,7 @@ class QuestionControllerTest {
     @Test
     @DisplayName("POST /question/create, 빈 값 -> 저장하지 않고 폼과 에러를 다시 보여준다")
     void t6() throws Exception {
-        mvc.perform(post("/question/create")
+        mvc.perform(post("/question/create").with(csrf())
                         .param("subject", "")
                         .param("content", "내용은 입력함"))
                 .andExpect(status().isOk())
