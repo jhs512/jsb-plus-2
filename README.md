@@ -2597,3 +2597,41 @@ public String changePassword(@ModelAttribute("form") @Valid PasswordChangeForm f
 ![변경 성공과 302](docs/steps/033-01-2.jpg)
 
 > **확인해 볼 것** 성공 화면에서 새로고침(F5)을 해 보세요. 메시지가 사라집니다. 플래시 속성은 리다이렉트 직후 요청 한 번에만 모델에 담기기 때문입니다. 리다이렉트 없이 바로 화면을 그리면 새로고침 때 PUT이 다시 전송됩니다(PRG 패턴).
+
+### 033-02 메일, 메일 서비스와 dev 전용 비밀 설정 파일
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/033-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/033-02)
+
+**무엇을** 메일 발송 서비스(`MailService`)와 비밀 설정 파일 구조를 만들었습니다. SMTP 계정은 `application-secret.yaml`(커밋 금지)에만 두고, **dev 프로파일에서만** 이 파일을 읽습니다. 메일 설정이 없으면 보내지 않고 로그로만 남깁니다.
+
+**왜** 다음 단계(비밀번호 찾기)에서 메일이 필요합니다. 이 저장소는 public이라 메일 비밀번호를 커밋하면 그대로 노출됩니다. 1차 저장소에서는 `application.yaml`(모든 프로파일)에서 import했다가, 테스트에도 개발용 비밀값이 섞이는 문제를 나중에(037-03) 고쳤습니다. 이번에는 처음부터 dev에만 둡니다.
+
+`application-dev.yaml`
+```diff
+  spring:
++   config:
++     import: optional:file:./application-secret.yaml   # 파일이 없어도 실행됨(optional)
+```
+
+`.gitignore`
+```diff
++ application-secret.yaml
+```
+
+`MailService.java`
+```java
+private final ObjectProvider<JavaMailSender> mailSenderProvider;   // spring.mail.host가 있을 때만 빈이 생김
+
+public void send(String to, String subject, String text) {
+    JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
+    if (mailSender == null) {
+        log.warn("[메일 미설정: 발송 생략] to={}, subject={}\n{}", to, subject, text);
+        return;
+    }
+    ...
+}
+```
+
+**결과**
+![MailServiceTest](docs/steps/033-02-1.jpg)
+
+> **확인해 볼 것** `application-secret.yaml.template`을 `application-secret.yaml`로 복사해 값을 채운 뒤 `git status`를 실행해 보세요. 파일이 목록에 나오지 않습니다(.gitignore). `git check-ignore -v application-secret.yaml`로 어느 규칙에 걸렸는지도 볼 수 있습니다.

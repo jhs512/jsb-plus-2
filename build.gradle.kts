@@ -23,6 +23,7 @@ dependencies {
 	implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework.boot:spring-boot-starter-mail")
 	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
 	implementation("org.commonmark:commonmark:0.24.0") // Boot가 버전을 관리하지 않으므로 직접 지정
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")

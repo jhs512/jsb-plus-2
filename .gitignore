@@ -42,3 +42,6 @@ bin/
 ### H2 파일 DB
 db_dev.mv.db
 db_dev.trace.db
+
+### 비밀 설정 (메일 계정, OAuth 키) - 절대 커밋하지 않는다
+application-secret.yaml
