@@ -19,6 +19,10 @@ public class AnswerService {
         return question.addAnswer(author, content);
     }
 
+    public void flush() {
+        answerRepository.flush();
+    }
+
     public Answer getAnswer(int id) {
         return answerRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("answer not found"));

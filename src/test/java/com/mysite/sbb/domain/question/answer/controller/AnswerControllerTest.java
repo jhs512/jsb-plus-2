@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -40,7 +41,7 @@ class AnswerControllerTest {
     void t1() throws Exception {
         mvc.perform(post("/answer/create/2").with(csrf()).param("content", "새 답변입니다."))
                 .andExpect(status().isFound())
-                .andExpect(redirectedUrl("/question/detail/2"));
+                .andExpect(redirectedUrlPattern("/question/detail/2#answer_*"));
 
         assertThat(questionRepository.findById(2).get().getAnswers())
                 .extracting("content")
@@ -62,7 +63,7 @@ class AnswerControllerTest {
     @DisplayName("PUT /answer/modify/1 (본인) -> 수정 후 질문 상세로")
     void t3() throws Exception {
         mvc.perform(put("/answer/modify/1").with(csrf()).param("content", "수정된 답변"))
-                .andExpect(redirectedUrl("/question/detail/2"));
+                .andExpect(redirectedUrlPattern("/question/detail/2#answer_*"));
 
         assertThat(answerRepository.findById(1).get().getContent()).isEqualTo("수정된 답변");
     }
@@ -88,7 +89,7 @@ class AnswerControllerTest {
     @Test
     @DisplayName("POST /answer/vote/1 -> 답변 추천")
     void t6() throws Exception {
-        mvc.perform(post("/answer/vote/1").with(csrf())).andExpect(redirectedUrl("/question/detail/2"));
+        mvc.perform(post("/answer/vote/1").with(csrf())).andExpect(redirectedUrlPattern("/question/detail/2#answer_*"));
 
         assertThat(answerRepository.findById(1).get().getVoters()).hasSize(1);
     }

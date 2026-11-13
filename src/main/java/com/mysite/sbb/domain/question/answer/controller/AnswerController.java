@@ -57,11 +57,13 @@ public class AnswerController {
             return "question_detail";
         }
 
-        answerService.create(question, userService.getUser(principal.getName()), answerForm.content());
+        Answer answer = answerService.create(question, userService.getUser(principal.getName()), answerForm.content());
+        answerService.flush(); // INSERT를 먼저 실행해야 새 답변의 id를 알 수 있다. (id가 0이면 앵커를 만들 수 없음)
 
         // 처리 후 화면을 직접 그리지 않고 상세 페이지로 다시 요청하게 한다. (POST-Redirect-GET)
         // -> 새로고침해도 답변이 중복 등록되지 않는다. (14168 28강)
-        return "redirect:/question/detail/%d".formatted(id);
+        // #answer_{id}: 브라우저가 해당 id를 가진 요소 위치로 스크롤 (교재 3-11)
+        return answerRedirect(answer);
     }
 
     // 본인 답변이 아니면 403
@@ -97,7 +99,7 @@ public class AnswerController {
 
         answerService.modify(answer, answerForm.content());
 
-        return "redirect:/question/detail/%d".formatted(answer.getQuestion().getId());
+        return answerRedirect(answer);
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -119,6 +121,10 @@ public class AnswerController {
         Answer answer = answerService.getAnswer(id);
         answer.vote(userService.getUser(principal.getName()));
 
-        return "redirect:/question/detail/%d".formatted(answer.getQuestion().getId());
+        return answerRedirect(answer);
+    }
+
+    private String answerRedirect(Answer answer) {
+        return "redirect:/question/detail/%d#answer_%d".formatted(answer.getQuestion().getId(), answer.getId());
     }
 }

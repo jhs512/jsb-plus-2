@@ -2095,3 +2095,30 @@ public String vote(@PathVariable int id, Principal principal) {
 
 **결과** 확인 창에서 "확인"을 누르면 POST로 전송되고 추천 수가 1이 됩니다.
 ![추천 POST](docs/steps/026-02-1.jpg)
+
+### 027-01 앵커, 답변 작성·수정·추천 후 그 답변 위치로
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/027-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/027-01)
+
+**무엇을** 답변을 작성·수정·추천한 뒤 페이지 맨 위가 아니라 **그 답변 위치로** 돌아오도록 했습니다.
+
+**왜** 답변이 많으면 매번 맨 위로 돌아가서 다시 스크롤해야 합니다(교재 3-11). 리다이렉트 주소 끝에 `#answer_{id}`를 붙이면, 브라우저가 그 `id`를 가진 요소 위치로 스크롤합니다.
+
+`question_detail.html`
+```diff
+  <div class="card my-3" th:each="answer : ${question.answers}">
++     <a th:id="|answer_${answer.id}|"></a>
+```
+
+`AnswerController.java`
+```diff
+- answerService.create(question, author, answerForm.content());
+- return "redirect:/question/detail/%d".formatted(id);
++ Answer answer = answerService.create(question, author, answerForm.content());
++ answerService.flush();   // INSERT를 먼저 실행해야 새 답변의 id를 알 수 있다
++ return "redirect:/question/detail/%d#answer_%d".formatted(question.getId(), answer.getId());
+```
+
+> **왜 flush?** 005-06에서 본 것처럼 `addAnswer()` 직후에는 아직 INSERT 전이라 `id`가 0입니다. `#answer_0`으로는 이동할 수 없어서, 리다이렉트 주소를 만들기 전에 INSERT를 먼저 실행합니다.
+
+**결과**
+![앵커 이동](docs/steps/027-01-1.jpg)
