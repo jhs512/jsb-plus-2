@@ -5,9 +5,13 @@ import com.mysite.sbb.domain.user.user.entity.SiteUser;
 import com.mysite.sbb.global.jpa.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static jakarta.persistence.FetchType.LAZY;
 import static lombok.AccessLevel.PROTECTED;
@@ -24,6 +28,11 @@ public class Answer extends BaseEntity {
     @ManyToOne(fetch = LAZY)
     private SiteUser author;
 
+    // 추천인. 질문(N) : 회원(N) -> 중간 테이블이 필요하다. (교재 3-10)
+    // Set: 같은 사람이 여러 번 추천해도 한 번만 들어간다.
+    @ManyToMany
+    private Set<SiteUser> voters = new HashSet<>();
+
     @Column(columnDefinition = "TEXT")
     private String content;
 
@@ -39,5 +48,9 @@ public class Answer extends BaseEntity {
 
     public boolean isAuthor(SiteUser user) {
         return user != null && author != null && author.getId() == user.getId();
+    }
+
+    public void vote(SiteUser voter) {
+        voters.add(voter); // 이미 있으면 무시 (equals/hashCode가 id 기준이라 가능)
     }
 }

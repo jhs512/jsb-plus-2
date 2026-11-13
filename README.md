@@ -2044,3 +2044,25 @@ public int hashCode() { return Objects.hashCode(id); }
 
 **결과**
 ![modified at](docs/steps/025-07-1.jpg)
+
+### 026-01 추천, 추천인 ManyToMany
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/026-01) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/026-01)
+
+**무엇을** 질문과 답변에 추천인 목록(`voters`)을 `@ManyToMany`로 추가했습니다.
+
+**왜** 한 질문을 여러 회원이 추천하고, 한 회원도 여러 질문을 추천합니다(N:N). 이런 관계는 어느 한쪽 테이블에 외래키 하나로 표현할 수 없어서 **중간 테이블이 꼭 필요합니다**(교재 3-10). `Set`을 쓰면 같은 회원이 두 번 들어가지 않습니다.
+
+`Question.java`, `Answer.java`
+```diff
++ @ManyToMany
++ private Set<SiteUser> voters = new HashSet<>();
++
++ public void vote(SiteUser voter) {
++     voters.add(voter);   // 이미 있으면 무시 (id 기반 equals 덕분)
++ }
+```
+
+**결과** `QUESTION_VOTERS`, `ANSWER_VOTERS` 중간 테이블이 생겼습니다.
+![중간 테이블](docs/steps/026-01-1.jpg)
+
+> **확인해 볼 것** 004-03 실험에서는 중간 테이블이 **불필요**했습니다(N:1 관계를 mappedBy 없이 선언). 이번에는 N:N이라 **필요**합니다. 같은 "중간 테이블"이라도 관계의 종류에 따라 의미가 다릅니다.
