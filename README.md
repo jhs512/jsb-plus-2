@@ -58,3 +58,23 @@ dependencies {
 
 > **교재와 다른 점** Boot 3.2.1 → 4.1.2, `build.gradle`(Groovy) → `build.gradle.kts`(Kotlin). Boot 4부터 웹 스타터 이름이 `starter-web`에서 `starter-webmvc`로 바뀌었습니다.
 > **확인해 볼 것** 메인 클래스 `SbbApplication`이 있는 패키지(`com.mysite.sbb`) 아래에 있어야 스프링이 컴포넌트를 찾습니다.
+
+### 001-02 프로젝트 생성, application.yaml로 전환
+[이 시점의 코드](https://github.com/jhs512/jsb-plus-2/tree/001-02) · [변경 내용](https://github.com/jhs512/jsb-plus-2/commit/001-02)
+
+**무엇을** 설정 파일을 `application.properties`에서 `application.yaml`로 바꿨습니다.
+
+**왜** 설정이 늘어나면 `spring.jpa.hibernate.ddl-auto`처럼 같은 앞부분이 반복됩니다. yaml은 들여쓰기로 계층을 표현해서 읽기 쉽습니다(14163·14168 방식).
+
+`application.properties` → `application.yaml`
+```diff
+- spring.application.name=sbb
++ spring:
++   application:
++     name: sbb
++   output:
++     ansi:
++       enabled: always   # 콘솔 로그에 색을 입힘
+```
+
+> **확인해 볼 것** 같은 설정을 properties로 쓰면 `spring.output.ansi.enabled=always`입니다. 두 형식이 1:1로 대응합니다.
